@@ -1,0 +1,41 @@
+name: kwiq_launcher
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  device_info:
+  device_apps:
+  auto_size_text:
+  intl:
+  shared_preferences:
+  url_launcher:
+  flutter_contacts:
+  system_theme:
+  flutter_local_notifications:
+  innerlibs:
+    path: ../innerlibs_dart
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/kwiq.png
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/kwiq.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+ 
