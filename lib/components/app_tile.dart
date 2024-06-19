@@ -10,11 +10,13 @@ class AppTile extends StatefulWidget {
     required this.application,
     required this.gridColumns,
     this.showLabel = true,
+    required this.onPop,
   });
 
   final Application application;
   final int gridColumns;
   final bool showLabel;
+  final VoidCallback onPop;
 
   @override
   State<AppTile> createState() => _AppTileState();
@@ -32,11 +34,10 @@ class _AppTileState extends State<AppTile> {
       },
       onLongPress: () async {
         await context.push(MyAppMenuScreen(application: widget.application as ApplicationWithIcon));
-
-        setState(() {});
+        widget.onPop();
       },
       child: Builder(builder: (context) {
-        if (widget.gridColumns > 1) { 
+        if (widget.gridColumns > 1) {
           var children = [
             CircleAvatar(
               backgroundImage: MemoryImage((widget.application as ApplicationWithIcon).icon),

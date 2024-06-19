@@ -22,12 +22,81 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
+  IconData categoryIcon(string category) {
+    switch (category.toTitleCase) {
+      case "Audio":
+        return Icons.audiotrack;
+      case "Books":
+        return Icons.book;
+      case "Business":
+        return Icons.business;
+      case "Communication":
+        return Icons.chat;
+      case "Education":
+        return Icons.school;
+      case "Entertainment":
+        return Icons.movie;
+      case "Finance":
+        return Icons.monetization_on;
+      case "Food & Drink":
+        return Icons.fastfood;
+      case "Games":
+      case "Game":
+        return Icons.games;
+      case "Health & Fitness":
+        return Icons.fitness_center;
+      case "House & Home":
+      case "House":
+      case "Home":
+        return Icons.home;
+      case "Image":
+        return Icons.image;
+      case "Lifestyle":
+        return Icons.favorite;
+      case "Maps & Navigation":
+        return Icons.map;
+      case "Medical":
+        return Icons.local_hospital;
+      case "Music":
+      case "Music & Audio":
+        return Icons.music_note;
+      case "News & Magazines":
+        return Icons.article;
+      case "Personalization":
+        return Icons.palette;
+      case "Photography":
+        return Icons.camera;
+      case "Productivity":
+        return Icons.work;
+      case "Shopping":
+        return Icons.shopping_cart;
+      case "Social":
+        return Icons.people;
+      case "Sports":
+        return Icons.sports;
+      case "Tools":
+        return Icons.build;
+      case "Travel & Local":
+        return Icons.airplanemode_active;
+      case "Video":
+      case "Video Players & Editors":
+        return Icons.video_library;
+      case "Weather":
+        return Icons.wb_sunny;
+      case "Map":
+      case "Maps":
+        return Icons.map;
+      default:
+        return Icons.category;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return RestartWidget(
       child: Scaffold(
         appBar: AppBar(
-          centerTitle: true,
+          automaticallyImplyLeading: false,
           title: const DigitalClock(),
           actions: [
             IconButton(
@@ -39,10 +108,40 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.search),
-          onPressed: () => showSearch(context: context, delegate: MyAppSearchDelegate()),
+        floatingActionButton: GestureDetector(
+          onLongPress: () async {
+            if (categories.isNotEmpty) {
+              await showModalBottomSheet(
+                context: context,
+                builder: (BuildContext context) {
+                  return ListView(
+                    children: [
+                      for (var category in categories)
+                        ListTile(
+                          leading: Icon(categoryIcon(category)),
+                          trailing: Text(filteredAppsByCategory[category]?.length.toString() ?? "0"),
+                          title: Text(category),
+                          onTap: () async {
+                            context.pop();
+                            await showSearch(context: context, delegate: MyAppSearchDelegate(category));
+                            setState(() {});
+                          },
+                        ),
+                    ],
+                  );
+                },
+              );
+            }
+          },
+          child: FloatingActionButton(
+            child: const Icon(Icons.search),
+            onPressed: () async {
+              await showSearch(context: context, delegate: MyAppSearchDelegate());
+              setState(() {});
+            },
+          ),
         ),
+        floatingActionButtonLocation: dockedAppsList.isNotEmpty ? FloatingActionButtonLocation.endContained : null,
         bottomNavigationBar: dockedAppsList.isEmpty
             ? null
             : BottomAppBar(
@@ -55,6 +154,7 @@ class _HomePageState extends State<HomePage> {
                         application: docked as ApplicationWithIcon,
                         gridColumns: gridColumns.lockMin(3),
                         showLabel: false,
+                        onPop: () => setState(() {}),
                       ),
                       const SizedBox(
                         width: 10,
@@ -65,8 +165,9 @@ class _HomePageState extends State<HomePage> {
               ),
         body: PopScope(
           canPop: false,
-          onPopInvoked: (p) {
-            showSearch(context: context, delegate: MyAppSearchDelegate());
+          onPopInvoked: (p) async {
+            await showSearch(context: context, delegate: MyAppSearchDelegate());
+            setState(() {});
           },
           child: FutureAwaiter(
             data: apps,
@@ -98,6 +199,7 @@ class _HomePageState extends State<HomePage> {
               AppTile(
                 application: application as ApplicationWithIcon,
                 gridColumns: gridColumns,
+                onPop: () => setState(() {}),
               ),
           ],
         ),
@@ -117,6 +219,7 @@ class _HomePageState extends State<HomePage> {
               AppTile(
                 application: application as ApplicationWithIcon,
                 gridColumns: 1,
+                onPop: () => setState(() {}),
               ),
             SizedBox(
               height: context.height * .12,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: const Text('Wallpaper'),
             onTap: () {
-              // TODO: Implement wallpaper settings
+              context.showSnackBarMessage("Soon...");
             },
           ),
           ListTile(
@@ -36,8 +37,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 });
               },
             ),
+            trailing: Text('$gridColumns'),
           ),
-          const AboutListTile(),
+          AboutListTile(
+            applicationName: 'Kwiq Launcher',
+            applicationVersion: '1.0.0',
+            applicationIcon: Image.asset('assets/kwiq.png', width: 48, height: 48),
+            applicationLegalese: '© 2023 Kaizonaro Apps',
+          ),
         ],
       ),
     );

@@ -12,7 +12,7 @@ late SharedPreferences prefs;
 int get gridColumns => prefs.getInt('gridColumns') ?? 4;
 set gridColumns(int value) => prefs.setInt('gridColumns', value);
 
-Color get mainColor => prefs.getString('mainColor')?.asColor ?? ThemeData.light().primaryColor;
+Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
 List<string> get recentSearches => (prefs.getStringList('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.value?.map((m) => m.appName) ?? [])).toList();
@@ -29,6 +29,7 @@ setCategoriesOf(string packageName, strings categories) => prefs.setStringList('
 
 final AwaiterData<List<Application>> apps = AwaiterData<List<Application>>();
 
+Map<string, List<Application>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
 List<Application> get filteredApps => apps.value?.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList() ?? [];
 
 List<Application> get dockedAppsList => filteredApps.where((app) => dockedApps.contains(app.packageName) && !hiddenApps.contains(app.packageName)).toList();
@@ -42,11 +43,19 @@ List<Contact> get starredContacts => contacts.where((contact) => contact.isStarr
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   prefs = await SharedPreferences.getInstance();
-  await SystemTheme.accentColor.load();
-  if (await FlutterContacts.requestPermission()) {
-    contacts = await FlutterContacts.getContacts(withProperties: true, withPhoto: true);
-  }
   SystemTheme.fallbackColor = "#f6373f".asColor;
+  await SystemTheme.accentColor.load();
   mainColor = SystemTheme.accentColor.accent;
+  if (await FlutterContacts.requestPermission()) {
+    contacts = await FlutterContacts.getContacts(
+      withProperties: true,
+      withPhoto: true,
+      withAccounts: true,
+      withGroups: true,
+      deduplicateProperties: true,
+      sorted: true,
+      withThumbnail: true,
+    );
+  }
   runApp(const MainApp());
 }
