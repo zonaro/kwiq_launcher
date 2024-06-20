@@ -117,6 +117,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       var catApps = filteredAppsByCategory[query] ?? [];
       if (catApps.isNotEmpty) {
         return ListView(
+          reverse: true,
           children: <Widget>[
             for (var app in catApps)
               AppTile(
@@ -127,7 +128,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           ],
         );
       } else {
-        return ListView(children: [
+        return ListView(reverse: true, children: [
           ...searchOn(),
           const Divider(),
           for (var suggestion in suggestionList)

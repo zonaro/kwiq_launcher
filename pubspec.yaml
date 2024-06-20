@@ -18,6 +18,8 @@ dependencies:
   flutter_contacts:
   system_theme:
   flutter_local_notifications:
+  file_manager:
+  permission_handler:
   innerlibs:
     path: ../innerlibs_dart
 

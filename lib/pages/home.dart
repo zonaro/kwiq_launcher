@@ -4,6 +4,7 @@ import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:kwiq_launcher/pages/file_manager.dart';
 import 'package:kwiq_launcher/pages/search.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 
@@ -99,6 +100,14 @@ class _HomePageState extends State<HomePage> {
           automaticallyImplyLeading: false,
           title: const DigitalClock(),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.folder),
+              onPressed: () async {
+                await context.push(FilePage());
+
+                setState(() {});
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () async {

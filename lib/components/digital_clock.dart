@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 
 class DigitalClock extends StatefulWidget {
-  const DigitalClock({super.key});
+  const DigitalClock({super.key, this.textStyle});
 
+  final TextStyle? textStyle;
   @override
   createState() => _DigitalClockState();
 }
@@ -50,7 +51,7 @@ class _DigitalClockState extends State<DigitalClock> {
         child: AutoSizeText(
           maxLines: 1,
           _timeString,
-          style: const TextStyle(fontSize: 50, fontWeight: FontWeight.bold),
+          style: widget.textStyle,
         ),
       ),
     );
