@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:open_file/open_file.dart';
 
 class FilePage extends StatefulWidget {
   const FilePage({super.key});
@@ -40,37 +40,55 @@ class _FilePageState extends State<FilePage> {
                       showFileExtension: true,
                     )),
                     subtitle: subtitle(entity),
+                    onLongPress: () async {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Options'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ListTile(
+                                leading: const Icon(Icons.edit),
+                                title: const Text('Rename'),
+                                onTap: () async {
+                                  await context.confirmTask(
+                                    title: "Rename",
+                                    confirmTaskMessage: "Are you sure you want to rename this file/folder?",
+                                    task: () async {
+                                      var s = await context.prompt(title: "Enter new name".asText(), initialValue: FileManager.basename(entity));
+                                      if (s.isNotBlank) {
+                                        await entity.rename(s!);
+                                      }
+                                      setState(() {});
+                                    },
+                                  );
+                                },
+                              ),
+                              ListTile(
+                                leading: const Icon(Icons.delete),
+                                title: const Text('Delete'),
+                                onTap: () async {
+                                  await context.confirmTask(
+                                      title: "Delete",
+                                      confirmTaskMessage: "Are you sure you want to delete this file/folder?",
+                                      task: () async {
+                                        await entity.delete(recursive: true);
+                                        setState(() {});
+                                      });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                     onTap: () async {
                       if (FileManager.isDirectory(entity)) {
                         // open the folder
                         controller.openDirectory(entity);
-
-                        // delete a folder
-                        // await entity.delete(recursive: true);
-
-                        // rename a folder
-                        // await entity.rename("newPath");
-
-                        // Check weather folder exists
-                        // entity.exists();
-
-                        // get date of file
-                        // DateTime date = (await entity.stat()).modified;
                       } else {
-                        // delete a file
-                        // await entity.delete();
-
-                        // rename a file
-                        // await entity.rename("newPath");
-
-                        // Check weather file exists
-                        // entity.exists();
-
-                        // get date of file
-                        // DateTime date = (await entity.stat()).modified;
-
-                        // get the size of the file
-                        // int size = (await entity.stat()).size;
+                        OpenFile.open(entity.path);
                       }
                     },
                   ),
@@ -78,28 +96,6 @@ class _FilePageState extends State<FilePage> {
               },
             );
           },
-        ),
-        floatingActionButton: FutureAwaiter(
-          future: () async {
-            var e = await Permission.storage.isGranted && await Permission.manageExternalStorage.isGranted;
-            if (e) {
-              return null;
-            } else {
-              return true;
-            }
-          },
-          builder: (_) => FloatingActionButton.extended(
-            onPressed: () async {
-              // You can request multiple permissions at once.
-              Map<Permission, PermissionStatus> statuses = await [
-                Permission.storage,
-                Permission.manageExternalStorage,
-              ].request();
-
-              // FileManager.requestFilesAccessPermission();
-            },
-            label: const Text("Request File Access Permission"),
-          ),
         ),
       ),
     );

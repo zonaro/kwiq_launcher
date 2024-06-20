@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
@@ -7,6 +9,7 @@ import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/file_manager.dart';
 import 'package:kwiq_launcher/pages/search.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../components/app_tile.dart';
 
@@ -103,7 +106,13 @@ class _HomePageState extends State<HomePage> {
             IconButton(
               icon: const Icon(Icons.folder),
               onPressed: () async {
-                await context.push(FilePage());
+                Map<Permission, PermissionStatus> statuses = await [
+                  Permission.storage,
+                  Permission.manageExternalStorage,
+                ].request();
+                if (await Permission.storage.isGranted || await Permission.manageExternalStorage.isGranted) {
+                  await context.push(const FilePage());
+                }
 
                 setState(() {});
               },
