@@ -41,7 +41,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
         if (q.any((x) => x.flatContains(query))) {
           return true;
         } else {
-          return q.map((x) => x.getWords.any((y) => y.getLevenshtein(query, false) < 4)).any((x) => x);
+          return q.map((x) => x.getWords.any((y) => y.getLevenshtein(query, false) < 3)).any((x) => x);
         }
       }).toList();
 
@@ -83,7 +83,17 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           leading: const Icon(Icons.map),
           title: Text('Maps Search for "$query"'),
           onTap: mapSearch,
-        )
+        ),
+        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
+          ListTile(
+            leading: Image.memory(
+              (apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon).icon,
+            ),
+            title: Text('Open "$query"'),
+            onTap: () {
+              DeviceApps.openApp(query);
+            },
+          ),
       ];
     } else {
       return [];
@@ -117,7 +127,6 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       var catApps = filteredAppsByCategory[query] ?? [];
       if (catApps.isNotEmpty) {
         return ListView(
-          reverse: true,
           children: <Widget>[
             for (var app in catApps)
               AppTile(
@@ -128,7 +137,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           ],
         );
       } else {
-        return ListView(reverse: true, children: [
+        return ListView(children: [
           ...searchOn(),
           const Divider(),
           for (var suggestion in suggestionList)

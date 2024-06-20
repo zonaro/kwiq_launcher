@@ -21,7 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: const Text('Wallpaper'),
             onTap: () {
-              context.showSnackBarMessage("Soon...");
+              context.showSnackBar("Soon...");
             },
           ),
           ListTile(
