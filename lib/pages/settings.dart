@@ -39,11 +39,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             trailing: Text('$gridColumns'),
           ),
+          FutureAwaiter(
+              future () async => PackageInfo.fromPlatform(),
+              builder:(info)=>
           AboutListTile(
-            applicationName: 'Kwiq Launcher',
-            applicationVersion: '1.0.0',
+            applicationName: info.appName,
+            applicationVersion: info.version,
             applicationIcon: Image.asset('assets/kwiq.png', width: 48, height: 48),
-            applicationLegalese: '© 2023 Kaizonaro Apps',
+            applicationLegalese: '© 2024 Kaizonaro Apps',
+          ),
           ),
         ],
       ),

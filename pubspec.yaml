@@ -1,5 +1,5 @@
 name: kwiq_launcher
-description: "A new Flutter project."
+description: "A modern launcher to replace your current home screen"
 publish_to: 'none'
 version: 0.1.0
 
@@ -20,7 +20,8 @@ dependencies:
   flutter_local_notifications:
   file_manager:
   permission_handler:
-  open_file :
+  open_file:
+  package_info_plus:
   innerlibs:
     path: ../innerlibs_dart
 
