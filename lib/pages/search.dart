@@ -36,29 +36,29 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  List<Application> get searchApps => filteredApps.where((app) {
-        var q = [app.appName, app.category.name, app.packageName, ...getCategoriesOf(app.packageName)].map((x) => x.asFlat);
-        if (q.any((x) => x.flatContains(query))) {
-          return true;
-        } else {
-          return q.map((x) => x.getWords.any((y) => y.getLevenshtein(query, false) < 3)).any((x) => x);
-        }
-      }).toList();
+  List<Application> get searchApps => filteredApps
+      .search(
+        searchTerm: query,
+        searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
+        levenshteinDistance: 3,
+        allIfEmpty: true,
+      )
+      .toList();
 
-  List<Contact> get searchContacts => contacts.where((c) {
-        var q = [
-          c.name.first,
-          c.name.last,
-          c.name.nickname,
-          c.displayName,
-          ...c.emails.map((e) => e.address),
-        ].whereValid.map((x) => x.asFlat);
-        if (q.any((x) => x.flatContains(query))) {
-          return true;
-        } else {
-          return q.map((x) => x.getWords.any((y) => y.getLevenshtein(query, false) < 4)).any((x) => x);
-        }
-      }).toList();
+  List<Contact> get searchContacts => contacts
+      .search(
+        searchTerm: query,
+        searchOn: (contact) => [
+          contact.name.first,
+          contact.name.last,
+          contact.name.nickname,
+          contact.displayName,
+          ...contact.emails.map((e) => e.address),
+          ...contact.phones.map((e) => e.number),
+        ],
+        levenshteinDistance: 3,
+      )
+      .toList();
 
   List<Widget> searchOn() {
     if (query.isNotEmpty) {

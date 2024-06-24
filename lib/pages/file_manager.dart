@@ -124,7 +124,7 @@ class _FilePageState extends State<FilePage> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () async {
-          await controller.goToParentDirectory();
+          await controller.isRootDirectory() ? context.pop() : await controller.goToParentDirectory();
         },
       ),
     );

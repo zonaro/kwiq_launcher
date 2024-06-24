@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -40,14 +41,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             trailing: Text('$gridColumns'),
           ),
           FutureAwaiter(
-              future () async => PackageInfo.fromPlatform(),
-              builder:(info)=>
-          AboutListTile(
-            applicationName: info.appName,
-            applicationVersion: info.version,
-            applicationIcon: Image.asset('assets/kwiq.png', width: 48, height: 48),
-            applicationLegalese: '© 2024 Kaizonaro Apps',
-          ),
+            future: () async => PackageInfo.fromPlatform(),
+            builder: (info) => AboutListTile(
+              applicationName: info.appName,
+              applicationVersion: info.version,
+              applicationIcon: Image.asset('assets/kwiq.png', width: 48, height: 48),
+              applicationLegalese: '© ${now.year} Kaizonaro Apps',
+            ),
           ),
         ],
       ),

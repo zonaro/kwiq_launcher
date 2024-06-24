@@ -42,7 +42,7 @@ class _ContactTileState extends State<ContactTile> {
         if (widget.gridColumns > 1) {
           var children = [
             CircleAvatar(
-              backgroundImage: widget.contact.photo != null ? MemoryImage(widget.contact.photo!) : null,
+              backgroundImage: (widget.contact.photo ?? widget.contact.thumbnail) != null ? MemoryImage(widget.contact.photo ?? widget.contact.thumbnail!) : null,
               child: widget.contact.photo == null ? AutoSizeText(widget.contact.displayName.getWords.map((x) => x.first(1)).take(3).join().toUpperCase()) : null,
             ),
             if (widget.showLabel) ...[
