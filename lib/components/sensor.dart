@@ -36,7 +36,7 @@ Future<bool> isDark() async {
     return false;
   }
 
-  final lightValue = 50;
+  const lightValue = 50;
   // You can adjust this threshold based on your preference
   const darkThreshold = 10; // Example threshold value
 

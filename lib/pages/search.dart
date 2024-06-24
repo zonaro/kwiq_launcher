@@ -40,7 +40,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       .search(
         searchTerm: query,
         searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
-        levenshteinDistance: 3,
+        levenshteinDistance: 2,
         allIfEmpty: true,
       )
       .toList();

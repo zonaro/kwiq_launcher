@@ -1,11 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:file_manager/file_manager.dart';
- 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kwiq_launcher/components/constants.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:storage_info/storage_info.dart';
 
 class FilesController extends GetxController {
@@ -156,7 +156,7 @@ class FilesController extends GetxController {
                     backgroundColor: orage2,
                   ),
                   onPressed: () async {
-                    Directory documentsDir = await getApplicationDocumentsDirectory();
+                    // Directory documentsDir = await getApplicationDocumentsDirectory();
 
                     String folderPath = path;
                     try {

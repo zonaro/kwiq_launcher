@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
             IconButton(
               icon: const Icon(Icons.folder),
               onPressed: () async {
-                Map<Permission, PermissionStatus> statuses = await [
+                await [
                   Permission.storage,
                   Permission.manageExternalStorage,
                 ].request();
