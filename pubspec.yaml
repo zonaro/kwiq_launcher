@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   device_info:
   device_apps:
+  path_provider:
+  path:
   auto_size_text:
   intl:
   shared_preferences:
@@ -22,6 +24,11 @@ dependencies:
   permission_handler:
   open_file:
   package_info_plus:
+  storage_info:
+  get:
+  percent_indicator:
+  sizer:
+  light_sensor:
   innerlibs:
     path: ../innerlibs_dart
 
