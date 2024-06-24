@@ -24,18 +24,16 @@ class _ContactTileState extends State<ContactTile> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
+      onTap: () => FlutterContacts.openExternalView(widget.contact.id),
+      onDoubleTap: () {
         if (widget.contact.phones.length != 1) {
-          FlutterContacts.openExternalView(widget.contact.id);
+          FlutterContacts.openExternalEdit(widget.contact.id);
         } else {
           launchUrlString('tel: ${widget.contact.phones.first.number}');
         }
       },
-      onDoubleTap: () {
-        FlutterContacts.openExternalEdit(widget.contact.id);
-      },
       onLongPress: () async {
-        FlutterContacts.openExternalView(widget.contact.id);
+        FlutterContacts.openExternalEdit(widget.contact.id);
         setState(() {});
       },
       child: Builder(builder: (context) {
