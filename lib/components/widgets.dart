@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:kwiq_launcher/components/constants.dart';
+import 'package:kwiq_launcher/main.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:sizer/sizer.dart';
 
@@ -46,7 +47,7 @@ Widget storagePercentWidget(int totalStorage, int usedStorage) => Container(
       ),
     );
 
-Widget fileTypeWidget(String type, String size, String iconPath, Color color) {
+Widget fileTypeWidget(String type, String size, IconData icon, Color color) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8.0),
     child: ClipRRect(
@@ -67,7 +68,7 @@ Widget fileTypeWidget(String type, String size, String iconPath, Color color) {
                 children: [
                   Text(type,
                       style: TextStyle(
-                        color: color == yellow ? Colors.black : Colors.white,
+                        color: color == mainColor ? Colors.black : Colors.white,
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w600,
                       )),
@@ -85,7 +86,11 @@ Widget fileTypeWidget(String type, String size, String iconPath, Color color) {
             bottom: -50,
             child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Image.asset(iconPath, height: 20.h, width: 30.w, fit: BoxFit.contain),
+              child: Icon(
+                icon,
+                size: 20.h,
+                color: color,
+              ),
             ),
           )
         ],

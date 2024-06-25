@@ -4,9 +4,9 @@ import 'dart:io';
 
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_storage_info/flutter_storage_info.dart';
 import 'package:get/get.dart';
 import 'package:kwiq_launcher/components/constants.dart';
-import 'package:storage_info/storage_info.dart';
 
 class FilesController extends GetxController {
   final FileManagerController controller = FileManagerController();
@@ -29,8 +29,9 @@ class FilesController extends GetxController {
   }
 
   Future<void> _getSpace() async {
-    deviceAvailableSize = await StorageInfo.getStorageFreeSpaceInGB;
-    deviceTotalSize = await StorageInfo.getStorageTotalSpaceInGB + 10;
+    deviceTotalSize = await FlutterStorageInfo.getStorageTotalSpaceInGB;
+    deviceAvailableSize = await FlutterStorageInfo.getStorageFreeSpaceInGB;
+
     update();
   }
 

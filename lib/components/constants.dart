@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 Color orage2 = const Color(0xf0dd9e60);
 Color orange = const Color(0xf0cf5e49);
-Color yellow = const Color(0xf0e3c783);
+ 
 Color black = const Color(0xf0321c28);
 Color white = const Color.fromARGB(0, 255, 255, 255);
 

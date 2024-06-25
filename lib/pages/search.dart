@@ -15,15 +15,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   @override
   List<Widget> buildActions(BuildContext context) {
-    return [
-      if (query.isNotEmpty)
-        IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: () {
-            query = '';
-          },
-        )
-    ];
+    return [];
   }
 
   @override
@@ -31,6 +23,9 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     return IconButton(
       icon: const Icon(Icons.arrow_back),
       onPressed: () {
+        if (query.isNotBlank) {
+          query = '';
+        } else {}
         close(context, query);
       },
     );
@@ -69,13 +64,25 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             title: Text('Call "$query"'),
             onTap: callNumber,
           ),
+        if (query.isUrl)
+          ListTile(
+            leading: const Icon(Icons.link),
+            title: Text('Open URL "$query"'),
+            onTap: openUrl,
+          ),
+        if (query.isEmail)
+          ListTile(
+            leading: const Icon(Icons.email),
+            title: Text('New message to "$query"'),
+            onTap: openMail,
+          ),
         ListTile(
-          leading: const Icon(Icons.search),
+          leading: const Icon(Icons.web),
           title: Text('Google Search for "$query"'),
           onTap: googleSearch,
         ),
         ListTile(
-          leading: const Icon(Icons.search),
+          leading: const Icon(Icons.web),
           title: Text('Bing Search for "$query"'),
           onTap: bingSearch,
         ),
@@ -85,15 +92,16 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           onTap: mapSearch,
         ),
         if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
-          ListTile(
-            leading: Image.memory(
-              (apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon).icon,
-            ),
-            title: Text('Open "$query"'),
-            onTap: () {
-              DeviceApps.openApp(query);
-            },
-          ),
+          Builder(builder: (context) {
+            var app = apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon;
+            return ListTile(
+              leading: Image.memory(
+                app.icon,
+              ),
+              title: Text('Open "${app.appName}"'),
+              onTap: () => DeviceApps.openApp(app.packageName),
+            );
+          }),
       ];
     } else {
       return [];
@@ -180,4 +188,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   void bingSearch() => launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
 
   void callNumber() => launchUrlString('tel: $query');
+
+  void openUrl() => launchUrlString(query);
+  void openMail() => launchUrlString('mailto: $query');
 }

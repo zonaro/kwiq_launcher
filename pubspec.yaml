@@ -24,7 +24,7 @@ dependencies:
   permission_handler:
   open_file:
   package_info_plus:
-  storage_info:
+  flutter_storage_info:
   get:
   percent_indicator:
   sizer:
