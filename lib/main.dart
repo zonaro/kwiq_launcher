@@ -2,6 +2,7 @@ import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
@@ -46,6 +47,11 @@ void main() async {
   SystemTheme.fallbackColor = "#f6373f".asColor;
   await SystemTheme.accentColor.load();
   mainColor = SystemTheme.accentColor.accent;
+
+  await Permission.manageExternalStorage.request();
+  await Permission.photos.request();
+  await Permission.videos.request();
+
   if (await FlutterContacts.requestPermission()) {
     contacts = await FlutterContacts.getContacts(
       withProperties: true,
