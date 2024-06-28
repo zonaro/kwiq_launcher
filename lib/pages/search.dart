@@ -63,7 +63,9 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             future: () async => query.fetchGoogleSuggestions(),
             builder: (sugestions) {
               return ExpansionTile(
+                leading: const Icon(Icons.search),
                 title: "Google".asText(),
+                initiallyExpanded: true,
                 children: [
                   for (var suggestion in sugestions)
                     ListTile(
