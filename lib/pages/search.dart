@@ -26,8 +26,9 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       onPressed: () {
         if (query.isNotBlank) {
           query = '';
-        } else {}
-        close(context, query);
+        } else {
+          close(context, query);
+        }
       },
     );
   }
@@ -63,15 +64,15 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             future: () async => query.fetchGoogleSuggestions(),
             builder: (sugestions) {
               return ExpansionTile(
-                leading: const Icon(Icons.search),
-                title: "Google".asText(),
+                leading: const Icon(Icons.text_fields),
+                title: "Suggestions".asText(),
                 initiallyExpanded: true,
                 children: [
                   for (var suggestion in sugestions)
                     ListTile(
                       title: Text(suggestion),
                       leading: const Icon(
-                        Icons.text_format,
+                        Icons.text_fields,
                       ),
                       trailing: recentSearches.contains(suggestion)
                           ? IconButton(
@@ -94,6 +95,18 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             title: Text('Call "$query"'),
             onTap: callNumber,
           ),
+        if (query.isNumericOnly)
+          ListTile(
+            leading: const Icon(Icons.phone),
+            title: Text('Sms to "$query"'),
+            onTap: smsTo,
+          ),
+        if (query.isNumericOnly && (apps.value?.map((a) => a.packageName).toList().flatContainsAny(['com.whatsapp', 'com.whatsapp.w4b']) ?? false))
+          ListTile(
+            leading: const Icon(Icons.phone),
+            title: Text('WhatsApp to "$query"'),
+            onTap: whatsAppTo,
+          ),
         if (query.isUrl)
           ListTile(
             leading: const Icon(Icons.link),
@@ -107,12 +120,12 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             onTap: openMail,
           ),
         ListTile(
-          leading: const Icon(Icons.web),
+          leading: const Icon(Icons.search),
           title: Text('Google Search for "$query"'),
           onTap: googleSearch,
         ),
         ListTile(
-          leading: const Icon(Icons.web),
+          leading: const Icon(Icons.search),
           title: Text('Bing Search for "$query"'),
           onTap: bingSearch,
         ),
@@ -221,4 +234,6 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   void openUrl() => launchUrlString(query);
   void openMail() => launchUrlString('mailto: $query');
+  void smsTo() => launchUrlString('sms: $query');
+  void whatsAppTo() => launchUrlString('whatsapp://send?phone= $query');
 }
