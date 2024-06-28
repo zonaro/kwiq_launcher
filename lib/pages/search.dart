@@ -1,6 +1,7 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
@@ -58,6 +59,33 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   List<Widget> searchOn() {
     if (query.isNotEmpty) {
       return [
+        FutureAwaiter(
+            future: () async => query.fetchGoogleSuggestions(),
+            builder: (sugestions) {
+              return ExpansionTile(
+                title: "Google".asText(),
+                children: [
+                  for (var suggestion in sugestions)
+                    ListTile(
+                      title: Text(suggestion),
+                      leading: const Icon(
+                        Icons.text_format,
+                      ),
+                      trailing: recentSearches.contains(suggestion)
+                          ? IconButton(
+                              icon: const Icon(Icons.delete_forever),
+                              onPressed: () {
+                                recentSearches = recentSearches.where((x) => x != suggestion).toList();
+                              })
+                          : null,
+                      onTap: () {
+                        query = suggestion;
+                        // showResults(context);
+                      },
+                    ),
+                ],
+              );
+            }),
         if (query.isNumericOnly)
           ListTile(
             leading: const Icon(Icons.phone),

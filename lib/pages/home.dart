@@ -81,6 +81,7 @@ class _HomePageState extends State<HomePage> {
       case "Tools":
         return Icons.build;
       case "Travel & Local":
+      case "Travel":
         return Icons.airplanemode_active;
       case "Video":
       case "Video Players & Editors":
