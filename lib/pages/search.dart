@@ -55,12 +55,24 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           ...contact.phones.map((e) => e.number),
         ],
         levenshteinDistance: 2,
-      ).take(limitSearch)
+      )
+      .take(limitSearch)
       .toList();
 
   List<Widget> searchOn(bool shoGoogleSuggestions) {
     if (query.isNotEmpty) {
       return [
+        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
+          Builder(builder: (context) {
+            var app = apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon;
+            return ListTile(
+              leading: Image.memory(
+                app.icon,
+              ),
+              title: Text('Open "${app.appName}"'),
+              onTap: () => DeviceApps.openApp(app.packageName),
+            );
+          }),
         if (shoGoogleSuggestions)
           FutureAwaiter(
               future: () async => await query.fetchGoogleSuggestions(),
@@ -136,17 +148,6 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           title: Text('Maps Search for "$query"'),
           onTap: mapSearch,
         ),
-        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
-          Builder(builder: (context) {
-            var app = apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon;
-            return ListTile(
-              leading: Image.memory(
-                app.icon,
-              ),
-              title: Text('Open "${app.appName}"'),
-              onTap: () => DeviceApps.openApp(app.packageName),
-            );
-          }),
       ];
     } else {
       return [];
