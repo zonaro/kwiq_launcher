@@ -40,6 +40,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
         levenshteinDistance: 2,
         allIfEmpty: true,
       )
+      .take(limitSearch)
       .toList();
 
   List<Contact> get searchContacts => contacts
@@ -53,42 +54,43 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           ...contact.emails.map((e) => e.address),
           ...contact.phones.map((e) => e.number),
         ],
-        levenshteinDistance: 3,
-      )
+        levenshteinDistance: 2,
+      ).take(limitSearch)
       .toList();
 
-  List<Widget> searchOn() {
+  List<Widget> searchOn(bool shoGoogleSuggestions) {
     if (query.isNotEmpty) {
       return [
-        FutureAwaiter(
-            future: () async => await query.fetchGoogleSuggestions(),
-            builder: (sugestions) {
-              return ExpansionTile(
-                leading: const Icon(Icons.text_fields),
-                title: "Suggestions".asText(),
-                initiallyExpanded: true,
-                children: [
-                  for (var suggestion in sugestions)
-                    ListTile(
-                      title: Text(suggestion),
-                      leading: const Icon(
-                        Icons.text_fields,
+        if (shoGoogleSuggestions)
+          FutureAwaiter(
+              future: () async => await query.fetchGoogleSuggestions(),
+              builder: (sugestions) {
+                return ExpansionTile(
+                  leading: const Icon(Icons.text_fields),
+                  title: sugestions.length.quantityText("Suggestions").asText(),
+                  initiallyExpanded: sugestions.length < 3,
+                  children: [
+                    for (var suggestion in sugestions)
+                      ListTile(
+                        title: Text(suggestion),
+                        leading: const Icon(
+                          Icons.text_fields,
+                        ),
+                        trailing: recentSearches.contains(suggestion)
+                            ? IconButton(
+                                icon: const Icon(Icons.delete_forever),
+                                onPressed: () {
+                                  recentSearches = recentSearches.where((x) => x != suggestion).toList();
+                                })
+                            : null,
+                        onTap: () {
+                          query = suggestion;
+                          // showResults(context);
+                        },
                       ),
-                      trailing: recentSearches.contains(suggestion)
-                          ? IconButton(
-                              icon: const Icon(Icons.delete_forever),
-                              onPressed: () {
-                                recentSearches = recentSearches.where((x) => x != suggestion).toList();
-                              })
-                          : null,
-                      onTap: () {
-                        query = suggestion;
-                        // showResults(context);
-                      },
-                    ),
-                ],
-              );
-            }),
+                  ],
+                );
+              }),
         if (query.isNumericOnly)
           ListTile(
             leading: const Icon(Icons.phone),
@@ -160,16 +162,16 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    recentSearches = [...recentSearches, query].whereValid.toList();
-    return baseWidgets();
+    recentSearches = [...recentSearches, query].whereValid.distinct().toList();
+    return baseWidgets(false);
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return baseWidgets();
+    return baseWidgets(true);
   }
 
-  Widget baseWidgets() {
+  Widget baseWidgets(bool showGoogleSuggestions) {
     return StatefulBuilder(builder: (context, setState) {
       if (preQuery.isNotEmpty) {
         query = preQuery;
@@ -189,7 +191,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
         );
       } else {
         return ListView(children: [
-          ...searchOn(),
+          ...searchOn(showGoogleSuggestions),
           const Divider(),
           for (var suggestion in suggestionList)
             if (suggestion is ApplicationWithIcon)
