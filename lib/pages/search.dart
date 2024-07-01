@@ -179,6 +179,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   @override
   Widget buildResults(BuildContext context) {
     recentSearches = [...recentSearches, query].whereValid.distinct().toList();
+    
     return baseWidgets(false);
   }
 
