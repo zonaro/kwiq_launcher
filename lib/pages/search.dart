@@ -61,7 +61,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     if (query.isNotEmpty) {
       return [
         FutureAwaiter(
-            future: () async => query.fetchGoogleSuggestions(),
+            future: () async => await query.fetchGoogleSuggestions(),
             builder: (sugestions) {
               return ExpansionTile(
                 leading: const Icon(Icons.text_fields),
