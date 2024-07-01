@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:file_manager/file_manager.dart';
@@ -8,6 +10,7 @@ import 'package:kwiq_launcher/components/constants.dart';
 import 'package:kwiq_launcher/components/file_controller.dart';
 import 'package:kwiq_launcher/components/widgets.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:open_file/open_file.dart';
 import 'package:sizer/sizer.dart';
 
 class FilePage extends StatefulWidget {
@@ -36,8 +39,8 @@ class _FilePageState extends State<FilePage> {
     return ControlBackButton(
       controller: myController.controller,
       child: PopScope(
-        onPopInvoked: (d) {
-          if (myController.controller.getCurrentPath == "/storage/emulated/0") {
+        onPopInvoked: (d) async {
+          if (await myController.controller.isRootDirectory()) {
             context.pop();
           }
         },
@@ -66,7 +69,7 @@ class _FilePageState extends State<FilePage> {
                                     setState(() {
                                       isSearching = true;
                                       searchQuery = value;
-                                      if (searchQuery.isEmpty || searchQuery == "" || searchQuery == " ") {
+                                      if (searchQuery.isBlank) {
                                         isSearching = false;
                                       }
                                     });
@@ -142,6 +145,16 @@ class _FilePageState extends State<FilePage> {
                                   itemBuilder: (BuildContext context) {
                                     return <PopupMenuEntry>[
                                       PopupMenuItem(
+                                        value: 'button0',
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Icon(Icons.play_arrow, color: orange),
+                                            const Text("Open"),
+                                          ],
+                                        ),
+                                      ),
+                                      PopupMenuItem(
                                         value: 'button1',
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -175,6 +188,22 @@ class _FilePageState extends State<FilePage> {
                                   },
                                   onSelected: (value) async {
                                     switch (value) {
+                                      case 'button0':
+                                        if (FileManager.isDirectory(entity)) {
+                                          try {
+                                            myController.controller.openDirectory(entity);
+                                          } catch (e) {
+                                            myController.alert(context, "Enable to open this folder");
+                                          }
+                                        } else {
+                                          try {
+                                            await OpenFile.open(entity.path);
+                                          } catch (e) {
+                                            myController.alert(context, "Enable to open this file");
+                                          }
+                                        }
+
+                                        break;
                                       case 'button1':
                                         if (FileManager.isDirectory(entity)) {
                                           await entity.delete(recursive: true).then((value) {

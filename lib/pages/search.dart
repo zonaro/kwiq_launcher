@@ -35,7 +35,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   List<Application> get searchApps => filteredApps
       .search(
-        searchTerm: query,
+        searchTerm: query.removeFirstEqual(":"),
         searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
         levenshteinDistance: 2,
         allIfEmpty: true,
@@ -44,7 +44,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   List<Contact> get searchContacts => contacts
       .search(
-        searchTerm: query,
+        searchTerm: query.removeFirstEqual("@"),
         searchOn: (contact) => [
           contact.name.first,
           contact.name.last,
@@ -151,12 +151,27 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     }
   }
 
-  List<Object> get suggestionList => query.isEmpty
-      ? recentSearches
-      : [
-          ...searchContacts,
-          ...searchApps,
-        ].toList();
+  List<Object> get suggestionList {
+    if (query.isEmpty) return recentSearches;
+
+    if (query.startsWith("@")) {
+      return searchContacts;
+    }
+
+    if (query.startsWith(":")) {
+      return searchApps;
+    }
+    
+    if (query.startsWith(">")) {
+      return categories;
+    }
+
+    return [
+      recentSearches,
+      ...searchContacts,
+      ...searchApps,
+    ].toList();
+  }
 
   @override
   Widget buildResults(BuildContext context) {

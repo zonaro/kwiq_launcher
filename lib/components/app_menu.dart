@@ -50,6 +50,12 @@ class MyAppMenuScreen extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
+                DeviceApps.openAppSettings(application.packageName);
+              },
+              child: const Text('App Settings'),
+            ),
+            ElevatedButton(
+              onPressed: () {
                 if (hiddenApps.flatContains(application.packageName)) {
                   hiddenApps = hiddenApps.where((element) => element != application.packageName).toList();
                 } else {
@@ -63,6 +69,7 @@ class MyAppMenuScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 // setCategoriesOf(widget.application.packageName, categories)
+                context.showSnackBar("Soon to be implemented");
               },
               child: const Text('Set Categories'),
             ),
