@@ -13,6 +13,9 @@ late SharedPreferences prefs;
 int get gridColumns => prefs.getInt('gridColumns') ?? 4;
 set gridColumns(int value) => prefs.setInt('gridColumns', value);
 
+int get limitSearch => prefs.getInt('limitSearch') ?? 20;
+set limitSearch(int value) => prefs.setInt('limitSearch', value);
+
 Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
