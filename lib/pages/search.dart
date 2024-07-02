@@ -66,8 +66,11 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           Builder(builder: (context) {
             var app = apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon;
             return ListTile(
-              leading: Image.memory(
-                app.icon,
+              leading: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.memory(
+                  app.icon,
+                ),
               ),
               title: Text('Open "${app.appName}"'),
               onTap: () => DeviceApps.openApp(app.packageName),
@@ -155,7 +158,20 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   }
 
   List<Object> get suggestionList {
-    if (query.isEmpty) return recentSearches;
+    if (query.isEmpty) {
+      return [
+        ListTile(
+          title: Wrap(
+            children: [
+              TextButton(onPressed: () => query = ":", child: const Text(":Apps")),
+              TextButton(onPressed: () => query = "@", child: const Text("@Contacts")),
+              TextButton(onPressed: () => query = ">", child: const Text(">Categories")),
+            ],
+          ),
+        ),
+        ...recentSearches,
+      ];
+    }
 
     if (query.startsWith("@")) {
       return searchContacts;
@@ -164,7 +180,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     if (query.startsWith(":")) {
       return searchApps;
     }
-    
+
     if (query.startsWith(">")) {
       return categories;
     }
