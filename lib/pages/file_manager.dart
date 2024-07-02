@@ -13,7 +13,7 @@ import 'package:kwiq_launcher/main.dart';
 import 'package:open_file/open_file.dart';
 import 'package:sizer/sizer.dart';
 
-final FilesController myController = Get.put(FilesController());
+final FilesController fileController = Get.put(FilesController());
 
 class FilePage extends StatefulWidget {
   const FilePage({super.key});
@@ -38,17 +38,17 @@ class _FilePageState extends State<FilePage> {
   @override
   Widget build(BuildContext context) {
     return ControlBackButton(
-      controller: myController.controller,
+      controller: fileController.controller,
       child: PopScope(
         onPopInvoked: (d) async {
-          if (await myController.controller.isRootDirectory()) {
+          if (await fileController.controller.isRootDirectory()) {
             context.pop();
           }
         },
         child: FileManager(
-          controller: myController.controller,
+          controller: fileController.controller,
           builder: (context, snapshot) {
-            myController.calculateSize(snapshot);
+            fileController.calculateSize(snapshot);
 
             final List<FileSystemEntity> entities = isSearching ? snapshot.where((element) => element.path.flatContains(searchQuery)).toList() : snapshot.where((element) => element.path != '/storage/emulated/0/Android').toList();
             return Padding(
@@ -91,16 +91,16 @@ class _FilePageState extends State<FilePage> {
                             child: ListView(
                               scrollDirection: Axis.horizontal,
                               children: [
-                                fileTypeWidget("Document", "${myController.documentSize.toStringAsFixed(2)} MB", Icons.folder, orange),
-                                fileTypeWidget("Videos", "${myController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front, mainColor),
-                                fileTypeWidget("Images", "${myController.imageSize.toStringAsFixed(2)} MB", Icons.image, black),
-                                fileTypeWidget("Music", "${myController.soundSize.toStringAsFixed(2)} MB", Icons.library_music, orange),
+                                fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder, orange),
+                                fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front, mainColor),
+                                fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image, black),
+                                fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music, orange),
                               ],
                             ),
                           ),
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-                            child: storagePercentWidget(myController.deviceTotalSize.toInt(), myController.deviceAvailableSize.toInt()),
+                            child: storagePercentWidget(fileController.deviceTotalSize.toInt(), fileController.deviceAvailableSize.toInt()),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -190,15 +190,15 @@ class _FilePageState extends State<FilePage> {
                                     case 'button0':
                                       if (FileManager.isDirectory(entity)) {
                                         try {
-                                          myController.controller.openDirectory(entity);
+                                          fileController.controller.openDirectory(entity);
                                         } catch (e) {
-                                          myController.alert(context, "Enable to open this folder");
+                                          fileController.alert(context, "Enable to open this folder");
                                         }
                                       } else {
                                         try {
                                           await OpenFile.open(entity.path);
                                         } catch (e) {
-                                          myController.alert(context, "Enable to open this file");
+                                          fileController.alert(context, "Enable to open this file");
                                         }
                                       }
 
@@ -236,7 +236,7 @@ class _FilePageState extends State<FilePage> {
                                                 onPressed: () async {
                                                   await entity
                                                       .rename(
-                                                    "${myController.controller.getCurrentPath}/${renameController.text.trim()}",
+                                                    "${fileController.controller.getCurrentPath}/${renameController.text.trim()}",
                                                   )
                                                       .then((value) {
                                                     Navigator.pop(context);
@@ -292,9 +292,9 @@ class _FilePageState extends State<FilePage> {
                             onTap: () async {
                               if (FileManager.isDirectory(entity)) {
                                 try {
-                                  myController.controller.openDirectory(entity);
+                                  fileController.controller.openDirectory(entity);
                                 } catch (e) {
-                                  myController.alert(context, "Enable to open this folder");
+                                  fileController.alert(context, "Enable to open this folder");
                                 }
                               }
                             },
@@ -321,7 +321,7 @@ class _FilePageState extends State<FilePage> {
               padding: const EdgeInsets.all(8.0),
               child: InkWell(
                 onTap: () {
-                  selectedFile.rename("${myController.controller.getCurrentPath}/${FileManager.basename(selectedFile)}");
+                  selectedFile.rename("${fileController.controller.getCurrentPath}/${FileManager.basename(selectedFile)}");
                   setState(() {
                     isMoving = false;
                   });
@@ -367,11 +367,11 @@ class _FilePageState extends State<FilePage> {
               onSelected: (value) {
                 switch (value) {
                   case 'button1':
-                    myController.createFile(context, myController.controller.getCurrentPath);
+                    fileController.createFile(context, fileController.controller.getCurrentPath);
 
                     break;
                   case 'button2':
-                    myController.createFolder(context);
+                    fileController.createFolder(context);
 
                     break;
                 }
@@ -381,7 +381,7 @@ class _FilePageState extends State<FilePage> {
         Visibility(
           visible: !isMoving,
           child: IconButton(
-            onPressed: () => myController.sort(context),
+            onPressed: () => fileController.sort(context),
             icon: const Icon(Icons.sort_rounded),
           ),
         ),
@@ -390,8 +390,8 @@ class _FilePageState extends State<FilePage> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () async {
-          await myController.controller.goToParentDirectory().then((value) {
-            if (myController.controller.getCurrentPath == "/storage/emulated/0") {
+          await fileController.controller.goToParentDirectory().then((value) {
+            if (fileController.controller.getCurrentPath == "/storage/emulated/0") {
               fullScreen = false;
               setState(() {});
             }

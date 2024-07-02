@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:innerlibs/file_extensions.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:kwiq_launcher/pages/file_manager.dart';
+import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -165,7 +170,8 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             children: [
               TextButton(onPressed: () => query = ":", child: const Text(": Apps")),
               TextButton(onPressed: () => query = "@", child: const Text("@ Contacts")),
-              TextButton(onPressed: () => query = ">", child: const Text("> Categories")),
+              TextButton(onPressed: () => query = "#", child: const Text("# Categories")),
+              TextButton(onPressed: () => query = ">", child: const Text("> Files")),
             ],
           ),
         ),
@@ -181,21 +187,37 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       return searchApps;
     }
 
-    if (query.startsWith(">")) {
+    if (query.startsWith("#")) {
       return categories;
+    }
+
+    if (query.startsWith(">")) {
+      return searchFiles;
     }
 
     return [
       recentSearches,
       ...searchContacts,
       ...searchApps,
+      ...searchFiles,
     ].toList();
+  }
+
+  List<File> get searchFiles {
+    try {
+      final dir = Directory(fileController.controller.getCurrentDirectory.path);
+      final files = dir.listSync(recursive: true).whereType<File>().toList();
+      return files.search(searchTerm: query, searchOn: (file) => [file.fileName ?? file.fileNameWithoutExtension ?? file.path], levenshteinDistance: 2).take(limitSearch).toList();
+    } catch (e) {
+      consoleLog('Error: $e');
+      return [];
+    }
   }
 
   @override
   Widget buildResults(BuildContext context) {
     recentSearches = [...recentSearches, query].whereValid.distinct().toList();
-    
+
     return baseWidgets(false);
   }
 
@@ -233,6 +255,31 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
               )
             else if (suggestion is Contact)
               ContactTile(contact: suggestion, gridColumns: 1)
+            else if (suggestion is File)
+              ListTile(
+                  title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
+                  leading: const Icon(Icons.file_copy),
+                  onTap: () => OpenFile.open(suggestion.path),
+                  onLongPress: () => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Path: ${suggestion.path}'),
+                              Text('Size: ${suggestion.lengthSync()} bytes'),
+                              Text('Last Modified: ${suggestion.lastModified}'),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Close'),
+                            ),
+                          ],
+                        ),
+                      ))
             else if (suggestion is string)
               ListTile(
                 title: Text(suggestion),
