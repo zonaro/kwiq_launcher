@@ -29,6 +29,7 @@ dependencies:
   percent_indicator:
   sizer:
   light_sensor:
+  app_settings :
   innerlibs:
     path: ../innerlibs_dart
 

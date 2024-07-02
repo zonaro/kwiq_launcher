@@ -59,7 +59,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       .take(limitSearch)
       .toList();
 
-  List<Widget> searchOn(bool shoGoogleSuggestions) {
+  List<Widget> searchOn(bool showGoogleSuggestions) {
     if (query.isNotEmpty) {
       return [
         if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
@@ -73,17 +73,17 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                 ),
               ),
               title: Text('Open "${app.appName}"'),
-              onTap: () => DeviceApps.openApp(app.packageName),
+              onTap: () => app.openApp(),
             );
           }),
-        if (shoGoogleSuggestions)
+        if (showGoogleSuggestions)
           FutureAwaiter(
               future: () async => await query.fetchGoogleSuggestions(),
               builder: (sugestions) {
                 return ExpansionTile(
                   leading: const Icon(Icons.text_fields),
                   title: sugestions.length.quantityText("Suggestions").asText(),
-                  initiallyExpanded: sugestions.length < 3,
+                  initiallyExpanded: sugestions.length < 3 || (searchContacts.length < 3 && searchApps.length < 3),
                   children: [
                     for (var suggestion in sugestions)
                       ListTile(
@@ -163,9 +163,9 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
         ListTile(
           title: Wrap(
             children: [
-              TextButton(onPressed: () => query = ":", child: const Text(":Apps")),
-              TextButton(onPressed: () => query = "@", child: const Text("@Contacts")),
-              TextButton(onPressed: () => query = ">", child: const Text(">Categories")),
+              TextButton(onPressed: () => query = ":", child: const Text(": Apps")),
+              TextButton(onPressed: () => query = "@", child: const Text("@ Contacts")),
+              TextButton(onPressed: () => query = ">", child: const Text("> Categories")),
             ],
           ),
         ),
@@ -199,9 +199,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   }
 
   @override
-  Widget buildSuggestions(BuildContext context) {
-    return baseWidgets(true);
-  }
+  Widget buildSuggestions(BuildContext context) => baseWidgets(true);
 
   Widget baseWidgets(bool showGoogleSuggestions) {
     return StatefulBuilder(builder: (context, setState) {
@@ -252,7 +250,11 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                   query = suggestion;
                   // showResults(context);
                 },
-              ),
+              )
+            else if (suggestion is Widget)
+              suggestion
+            else
+              const SizedBox.shrink()
         ]);
       }
     });

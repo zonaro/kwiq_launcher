@@ -44,6 +44,54 @@ List<Contact> contacts = [];
 
 List<Contact> get starredContacts => contacts.where((contact) => contact.isStarred).toList();
 
+IconData categoryIcon(String category) {
+  final Map<String, IconData> categoryIcons = {
+    "audio": Icons.audiotrack,
+    "books": Icons.book,
+    "book": Icons.book,
+    "business": Icons.business,
+    "communication": Icons.chat,
+    "message": Icons.chat,
+    "messages": Icons.chat,
+    "education": Icons.school,
+    "entertainment": Icons.movie,
+    "finance": Icons.monetization_on,
+    "food": Icons.fastfood,
+    "drink": Icons.fastfood,
+    "games": Icons.games,
+    "game": Icons.games,
+    "health": Icons.fitness_center,
+    "fitness": Icons.fitness_center,
+    "house": Icons.home,
+    "home": Icons.home,
+    "images": Icons.image,
+    "image": Icons.image,
+    "picture": Icons.image,
+    "pictures": Icons.image,
+    "lifestyle": Icons.favorite,
+    "navigation": Icons.map,
+    "medical": Icons.local_hospital,
+    "music": Icons.music_note,
+    "magazines": Icons.article,
+    "news": Icons.article,
+    "personalization": Icons.palette,
+    "photography": Icons.camera,
+    "productivity": Icons.work,
+    "shopping": Icons.shopping_cart,
+    "social": Icons.people,
+    "sports": Icons.sports,
+    "tools": Icons.build,
+    "travel": Icons.airplanemode_active,
+    "video": Icons.video_library,
+    "weather": Icons.wb_sunny,
+    "map": Icons.map,
+    "local": Icons.map,
+    "maps": Icons.map,
+    "work": Icons.work,
+  };
+  return category.getUniqueWords.whereValid.map((x) => categoryIcons[x.toLowerCase()]).firstOrNull ?? Icons.category;
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   prefs = await SharedPreferences.getInstance();
