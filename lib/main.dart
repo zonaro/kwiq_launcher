@@ -99,9 +99,11 @@ void main() async {
   await SystemTheme.accentColor.load();
   mainColor = SystemTheme.accentColor.accent;
 
-  await Permission.manageExternalStorage.request();
   await Permission.photos.request();
   await Permission.videos.request();
+  await Permission.calendarFullAccess.request();
+  await Permission.location.request();
+  await Permission.manageExternalStorage.request();
 
   if (await FlutterContacts.requestPermission()) {
     contacts = await FlutterContacts.getContacts(

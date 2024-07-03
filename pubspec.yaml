@@ -12,7 +12,7 @@ dependencies:
   device_info:
   device_apps:
   path_provider:
-  # path_provider_ex:
+  dashboard:
   path:
   auto_size_text:
   intl:

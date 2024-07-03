@@ -1,6 +1,9 @@
+import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:innerlibs/innerlibs.dart';
+import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
+import 'package:kwiq_launcher/main.dart';
 
 class Windows11MimicScreen extends StatefulWidget {
   const Windows11MimicScreen({super.key});
@@ -33,44 +36,91 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
               // Ícones no centro
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.android),
-                    onPressed: () {},
+                  PopupMenuButton(
+                    position: PopupMenuPosition.over,
+                    icon: const Icon(Icons.apps),
+                    iconColor: mainColor,
+                    itemBuilder: (BuildContext context) {
+                      return [
+                        for (var k in filteredAppsByCategory.keys)
+                          PopupMenuItem(
+                            child: PopupMenuButton(
+                                child: Row(
+                                  children: [
+                                    categoryIcon(k).asIcon(),
+                                    Text(k.toTitleCase),
+                                  ],
+                                ),
+                                itemBuilder: (BuildContext context) {
+                                  return [
+                                    for (var app in filteredAppsByCategory[k] ?? [])
+                                      PopupMenuItem(
+                                        value: app.appName,
+                                        child: AppTile(
+                                          onPop: () {},
+                                          gridColumns: 1,
+                                          application: app,
+                                        ),
+                                      )
+                                  ];
+                                }),
+                          ),
+                      ];
+                    },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () {},
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      height: 30,
+                      width: 100,
+                      child: TextFormField(
+                        decoration: InputDecoration(
+                          hintText: 'Pesquisar',
+                          hintStyle: const TextStyle(color: Colors.white, fontSize: 12),
+                          filled: true,
+                          fillColor: Colors.grey[800],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(25),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.folder_open),
                     onPressed: () {},
                   ),
+                  for (var app in dockedAppsList)
+                    IconButton(
+                      icon: Image.memory((app as ApplicationWithIcon).icon),
+                      onPressed: () {},
+                    )
                 ],
               ),
               // Ícones à direita
               Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.wifi, size: 12),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.volume_up, size: 12),
+                    onPressed: () {},
+                  ),
                   const DigitalClock(
-                      format: 'HH:mm:ss',
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                      )),
+                    format: 'HH:mm:ss',
+                    textStyle: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
                   IconButton(
-                    icon: const Icon(Icons.notifications),
+                    icon: const Icon(Icons.notifications, size: 12),
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: const Icon(Icons.wifi),
-                    onPressed: () {
-                      SystemChannels.platform.invokeMethod('wifi.open');
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.volume_up),
-                    onPressed: () {},
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.apps),
+                    icon: const Icon(Icons.android, size: 12),
                     onPressed: () {},
                   ),
                 ],
