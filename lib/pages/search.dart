@@ -10,6 +10,7 @@ import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/file_manager.dart';
+import 'package:kwiq_launcher/pages/home_page.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -67,20 +68,6 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   List<Widget> searchOn(bool showGoogleSuggestions) {
     if (query.isNotEmpty) {
       return [
-        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
-          Builder(builder: (context) {
-            var app = apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon;
-            return ListTile(
-              leading: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.memory(
-                  app.icon,
-                ),
-              ),
-              title: Text('Open "${app.appName}"'),
-              onTap: () => app.openApp(),
-            );
-          }),
         if (showGoogleSuggestions)
           FutureAwaiter(
               future: () async => await query.fetchGoogleSuggestions(),
@@ -88,7 +75,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                 return ExpansionTile(
                   leading: const Icon(Icons.text_fields),
                   title: sugestions.length.quantityText("Suggestions").asText(),
-                  initiallyExpanded: sugestions.length < 3 || (searchContacts.length < 3 && searchApps.length < 3),
+                  initiallyExpanded: (searchContacts.isEmpty && searchApps.isEmpty && searchFiles.isEmpty),
                   children: [
                     for (var suggestion in sugestions)
                       ListTile(
@@ -156,6 +143,12 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           title: Text('Maps Search for "$query"'),
           onTap: mapSearch,
         ),
+        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
+          AppTile(
+            application: apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon,
+            gridColumns: 1,
+            onPop: () => {},
+          ),
       ];
     } else {
       return [];
@@ -206,7 +199,14 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   List<File> get searchFiles {
     try {
       final dir = Directory(fileController.controller.getCurrentDirectory.path);
-      final files = dir.listSync(recursive: true).whereType<File>().toList();
+      List<File> files = [];
+      for (var file in dir.listSync(recursive: false).where((x) => x.path != '/storage/emulated/0/Android')) {
+        if (file is Directory) {
+          files.addAll(file.listSync(recursive: true).whereType<File>());
+        } else {
+          files.add(file as File);
+        }
+      }
       return files.search(searchTerm: query, searchOn: (file) => [file.fileName ?? file.fileNameWithoutExtension ?? file.path], levenshteinDistance: 2).take(limitSearch).toList();
     } catch (e) {
       consoleLog('Error: $e');
@@ -260,26 +260,10 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                   title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
                   leading: const Icon(Icons.file_copy),
                   onTap: () => OpenFile.open(suggestion.path),
-                  onLongPress: () => showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('Path: ${suggestion.path}'),
-                              Text('Size: ${suggestion.lengthSync()} bytes'),
-                              Text('Last Modified: ${suggestion.lastModified}'),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('Close'),
-                            ),
-                          ],
-                        ),
-                      ))
+                  onLongPress: () {
+                    fileController.controller.openDirectory(suggestion.parent);
+                    pageController.animateToPage(1, duration: 1.seconds, curve: Curves.easeInOut);
+                  })
             else if (suggestion is string)
               ListTile(
                 title: Text(suggestion),

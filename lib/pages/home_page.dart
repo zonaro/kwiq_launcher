@@ -12,6 +12,8 @@ import 'package:kwiq_launcher/pages/search.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+final PageController pageController = PageController();
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -20,8 +22,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final PageController controller = PageController();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
-      floatingActionButtonLocation: dockedAppsList.isNotEmpty ? FloatingActionButtonLocation.endContained : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const DigitalClock(),
@@ -80,29 +80,27 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      bottomNavigationBar: dockedAppsList.isEmpty
-          ? null
-          : BottomAppBar(
-              child: ListView(
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                children: [
-                  for (var docked in dockedAppsList) ...[
-                    AppTile(
-                      application: docked as ApplicationWithIcon,
-                      gridColumns: gridColumns.lockMin(3),
-                      showLabel: false,
-                      onPop: () {},
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                  ]
-                ],
+      bottomNavigationBar: BottomAppBar(
+        child: ListView(
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          children: [
+            for (var docked in dockedAppsList) ...[
+              AppTile(
+                application: docked as ApplicationWithIcon,
+                gridColumns: gridColumns.lockMin(3),
+                showLabel: false,
+                onPop: () {},
               ),
-            ),
+              const SizedBox(
+                width: 10,
+              ),
+            ]
+          ],
+        ),
+      ),
       body: PageView(
-        controller: controller,
+        controller: pageController,
         children: const [
           AppPage(),
           FilePage(),

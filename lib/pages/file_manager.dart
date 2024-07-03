@@ -23,11 +23,10 @@ class FilePage extends StatefulWidget {
 }
 
 class _FilePageState extends State<FilePage> {
-  String searchQuery = '';
   var gotPermission = false;
   var isMoving = false;
-  var fullScreen = false;
-  var isSearching = false;
+  var hideDetails = false;
+
   late FileSystemEntity selectedFile;
 
   @override
@@ -50,57 +49,30 @@ class _FilePageState extends State<FilePage> {
           builder: (context, snapshot) {
             fileController.calculateSize(snapshot);
 
-            final List<FileSystemEntity> entities = isSearching ? snapshot.where((element) => element.path.flatContains(searchQuery)).toList() : snapshot.where((element) => element.path != '/storage/emulated/0/Android').toList();
+            final List<FileSystemEntity> entities = snapshot.where((element) => element.path != '/storage/emulated/0/Android').toList();
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 children: [
                   Visibility(
-                      visible: !fullScreen,
+                      visible: !hideDetails,
                       child: Column(
                         children: [
                           Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: SizedBox(
-                              height: 7.5.h,
-                              child: TextField(
-                                onChanged: (value) {
-                                  setState(() {
-                                    isSearching = true;
-                                    searchQuery = value;
-                                    if (searchQuery.isBlank) {
-                                      isSearching = false;
-                                    }
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  suffixIcon: const Icon(Icons.search),
-                                  filled: true,
-                                  fillColor: Colors.grey[200],
-                                  hintText: 'Search Files',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+                            child: storagePercentWidget(fileController.deviceTotalSize.toInt(), fileController.deviceAvailableSize.toInt()),
                           ),
                           SizedBox(
                             height: 20.h,
                             child: ListView(
                               scrollDirection: Axis.horizontal,
                               children: [
-                                fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder, orange),
-                                fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front, mainColor),
-                                fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image, black),
-                                fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music, orange),
+                                if (fileController.documentSize > 0) fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder, orange),
+                                if (fileController.videoSize > 0) fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front, mainColor),
+                                if (fileController.imageSize > 0) fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image, black),
+                                if (fileController.soundSize > 0) fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music, orange),
                               ],
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-                            child: storagePercentWidget(fileController.deviceTotalSize.toInt(), fileController.deviceAvailableSize.toInt()),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(8.0),
@@ -114,7 +86,7 @@ class _FilePageState extends State<FilePage> {
                                     )),
                                 InkWell(
                                   onTap: () {
-                                    fullScreen = true;
+                                    hideDetails = true;
                                     setState(() {});
                                   },
                                   child: Text(
@@ -136,170 +108,7 @@ class _FilePageState extends State<FilePage> {
                       itemCount: entities.length,
                       itemBuilder: (context, index) {
                         FileSystemEntity entity = entities[index];
-
-                        return Ink(
-                          color: Colors.transparent,
-                          child: ListTile(
-                            trailing: PopupMenuButton(
-                                itemBuilder: (BuildContext context) {
-                                  return <PopupMenuEntry>[
-                                    PopupMenuItem(
-                                      value: 'button0',
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Icon(Icons.play_arrow, color: orange),
-                                          const Text("Open"),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'button1',
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Icon(Icons.delete, color: orange),
-                                          const Text("Delete"),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'button2',
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Icon(Icons.rotate_left_sharp, color: mainColor),
-                                          const Text("Rename"),
-                                        ],
-                                      ),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'button3',
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Icon(Icons.move_down_rounded, color: black),
-                                          const Text("Move"),
-                                        ],
-                                      ),
-                                    )
-                                  ];
-                                },
-                                onSelected: (value) async {
-                                  switch (value) {
-                                    case 'button0':
-                                      if (FileManager.isDirectory(entity)) {
-                                        try {
-                                          fileController.controller.openDirectory(entity);
-                                        } catch (e) {
-                                          fileController.alert(context, "Enable to open this folder");
-                                        }
-                                      } else {
-                                        try {
-                                          await OpenFile.open(entity.path);
-                                        } catch (e) {
-                                          fileController.alert(context, "Enable to open this file");
-                                        }
-                                      }
-
-                                      break;
-                                    case 'button1':
-                                      if (FileManager.isDirectory(entity)) {
-                                        await entity.delete(recursive: true).then((value) {
-                                          setState(() {});
-                                        });
-                                      } else {
-                                        await entity.delete().then((value) {
-                                          setState(() {});
-                                        });
-                                      }
-
-                                      break;
-                                    case 'button2':
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) {
-                                          TextEditingController renameController = TextEditingController();
-                                          return AlertDialog(
-                                            title: Text("Rename ${FileManager.basename(entity)}"),
-                                            content: TextField(
-                                              controller: renameController,
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  await entity
-                                                      .rename(
-                                                    "${fileController.controller.getCurrentPath}/${renameController.text.trim()}",
-                                                  )
-                                                      .then((value) {
-                                                    Navigator.pop(context);
-                                                    setState(() {});
-                                                  });
-                                                },
-                                                child: const Text("Rename"),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-
-                                      break;
-                                    case 'button3':
-                                      selectedFile = entity;
-                                      setState(() {
-                                        isMoving = true;
-                                      });
-                                      break;
-                                  }
-                                },
-                                child: const Icon(Icons.more_vert)),
-                            leading: FileManager.isFile(entity)
-                                ? Card(
-                                    color: mainColor,
-                                    elevation: 0,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Icons.copy.asIcon(),
-                                    ),
-                                  )
-                                : Card(
-                                    color: orange,
-                                    elevation: 0,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Icons.folder.asIcon(),
-                                    ),
-                                  ),
-                            title: Text(
-                              FileManager.basename(
-                                entity,
-                                showFileExtension: true,
-                              ),
-                              style: TextStyle(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: entity.asText(),
-                            onTap: () async {
-                              if (FileManager.isDirectory(entity)) {
-                                try {
-                                  fileController.controller.openDirectory(entity);
-                                } catch (e) {
-                                  fileController.alert(context, "Enable to open this folder");
-                                }
-                              }
-                            },
-                          ),
-                        );
+                        return fileTile(entity, context);
                       },
                     ),
                   ),
@@ -310,6 +119,171 @@ class _FilePageState extends State<FilePage> {
         ),
       ),
     );
+  }
+
+  Ink fileTile(FileSystemEntity entity, BuildContext context) {
+    return Ink(
+      color: Colors.transparent,
+      child: ListTile(
+        trailing: PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuEntry>[
+                PopupMenuItem(
+                  value: 'button0',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.play_arrow, color: orange),
+                      const Text("Open"),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'button1',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.delete, color: orange),
+                      const Text("Delete"),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'button2',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.rotate_left_sharp, color: mainColor),
+                      const Text("Rename"),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'button3',
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Icon(Icons.move_down_rounded, color: black),
+                      const Text("Move"),
+                    ],
+                  ),
+                )
+              ];
+            },
+            onSelected: (value) async {
+              switch (value) {
+                case 'button0':
+                  await openEntity(entity, context);
+
+                  break;
+                case 'button1':
+                  if (FileManager.isDirectory(entity)) {
+                    await entity.delete(recursive: true).then((value) {
+                      setState(() {});
+                    });
+                  } else {
+                    await entity.delete().then((value) {
+                      setState(() {});
+                    });
+                  }
+
+                  break;
+                case 'button2':
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      TextEditingController renameController = TextEditingController();
+                      return AlertDialog(
+                        title: Text("Rename ${FileManager.basename(entity)}"),
+                        content: TextField(
+                          controller: renameController,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              await entity
+                                  .rename(
+                                "${fileController.controller.getCurrentPath}/${renameController.text.trim()}",
+                              )
+                                  .then((value) {
+                                Navigator.pop(context);
+                                setState(() {});
+                              });
+                            },
+                            child: const Text("Rename"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  break;
+                case 'button3':
+                  selectedFile = entity;
+                  setState(() {
+                    isMoving = true;
+                  });
+                  break;
+              }
+            },
+            child: const Icon(Icons.more_vert)),
+        leading: FileManager.isFile(entity)
+            ? Card(
+                color: mainColor,
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icons.copy.asIcon(),
+                ),
+              )
+            : Card(
+                color: orange,
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icons.folder.asIcon(),
+                ),
+              ),
+        title: Text(
+          FileManager.basename(
+            entity,
+            showFileExtension: true,
+          ),
+          style: TextStyle(
+            fontStyle: FontStyle.italic,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: entity.asText(),
+        onTap: () async => await openEntity(entity, context),
+      ),
+    );
+  }
+
+  Future<void> openEntity(FileSystemEntity entity, BuildContext context) async {
+    if (FileManager.isDirectory(entity)) {
+      try {
+        fileController.controller.openDirectory(entity);
+      } catch (e) {
+        fileController.alert(context, "Enable to open this folder");
+      }
+    } else {
+      await context.showTaskLoader(
+        loadingText: "Opening ${FileManager.basename(entity)}",
+        task: () async {
+          await Future.delayed(1.seconds);
+          return await OpenFile.open(entity.path);
+        },
+        onError: (e) => fileController.alert(context, "Enable to open this file"),
+      );
+    }
   }
 
   AppBar appBar(BuildContext context) {
@@ -392,7 +366,7 @@ class _FilePageState extends State<FilePage> {
         onPressed: () async {
           await fileController.controller.goToParentDirectory().then((value) {
             if (fileController.controller.getCurrentPath == "/storage/emulated/0") {
-              fullScreen = false;
+              hideDetails = false;
               setState(() {});
             }
           });
