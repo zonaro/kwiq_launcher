@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
 
 class Windows11MimicScreen extends StatefulWidget {
@@ -60,7 +61,9 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.wifi),
-                    onPressed: () {},
+                    onPressed: () {
+                      SystemChannels.platform.invokeMethod('wifi.open');
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.volume_up),
