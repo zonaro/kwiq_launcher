@@ -59,7 +59,10 @@ class _HomePageState extends State<HomePage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const DigitalClock(),
+        title: const Padding(
+          padding: EdgeInsets.all(5.0),
+          child: DigitalClock(),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.folder),

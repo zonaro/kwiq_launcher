@@ -1,9 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide ContextExtensionss;
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:kwiq_launcher/pages/desktop_home.dart';
 import 'package:sizer/sizer.dart';
 
 import 'pages/home_page.dart';
@@ -18,11 +19,10 @@ class MainApp extends StatelessWidget {
         themeMode: ThemeMode.system,
         theme: ThemeData.light().copyWith(primaryColor: mainColor),
         darkTheme: ThemeData.dark().copyWith(primaryColor: mainColor),
-        home: const RestartWidget(
-          child: HomePage(),
+        home: RestartWidget(
+          child: context.orientation == Orientation.portrait ? const HomePage() : const Windows11MimicScreen(),
         ),
       ),
     );
   }
 }
-

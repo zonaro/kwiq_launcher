@@ -1,14 +1,15 @@
 import 'dart:async';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 
 class DigitalClock extends StatefulWidget {
-  const DigitalClock({super.key, this.textStyle});
+  const DigitalClock({super.key, this.textStyle, this.format = 'HH:mm:ss'});
 
   final TextStyle? textStyle;
+
+  final string format;
   @override
   createState() => _DigitalClockState();
 }
@@ -24,9 +25,8 @@ class _DigitalClockState extends State<DigitalClock> {
   }
 
   void _getTime() {
-    final String formattedDateTime = now.format('HH:mm:ss');
     setState(() {
-      _timeString = formattedDateTime;
+      _timeString = now.format(widget.format);
     });
   }
 
@@ -44,15 +44,12 @@ class _DigitalClockState extends State<DigitalClock> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(5.0),
-      child: GestureDetector(
-        onTap: _openClock,
-        child: AutoSizeText(
-          maxLines: 1,
-          _timeString,
-          style: widget.textStyle,
-        ),
+    return GestureDetector(
+      onTap: _openClock,
+      child: Text(
+        maxLines: 1,
+        _timeString,
+        style: widget.textStyle,
       ),
     );
   }
