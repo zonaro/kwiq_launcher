@@ -31,6 +31,7 @@ dependencies:
   sizer:
   light_sensor:
   app_settings :
+  flutter_colorpicker :
   innerlibs:
     path: ../innerlibs_dart
 

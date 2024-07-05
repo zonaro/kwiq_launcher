@@ -88,12 +88,15 @@ class _HomePageState extends State<HomePage> {
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           children: [
-            for (var docked in dockedAppsList) ...[
-              AppTile(
-                application: docked as ApplicationWithIcon,
-                gridColumns: gridColumns.lockMin(3),
-                showLabel: false,
-                onPop: () {},
+            for (var app in dockedAppsList) ...[
+              FutureAwaiter(
+                future: () => app,
+                builder: (docked) => AppTile(
+                  application: docked! as ApplicationWithIcon,
+                  gridColumns: gridColumns.lockMin(3),
+                  showLabel: false,
+                  onPop: () {},
+                ),
               ),
               const SizedBox(
                 width: 10,

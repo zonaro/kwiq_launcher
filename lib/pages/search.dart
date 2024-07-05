@@ -263,6 +263,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                   onLongPress: () {
                     fileController.controller.openDirectory(suggestion.parent);
                     pageController.animateToPage(1, duration: 1.seconds, curve: Curves.easeInOut);
+                    context.pop();
                   })
             else if (suggestion is string)
               ListTile(

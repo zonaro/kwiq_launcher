@@ -14,13 +14,13 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Sizer(
-      builder: (context, orientation, deviceType) => GetMaterialApp(
-        themeMode: ThemeMode.system,
-        theme: ThemeData.light().copyWith(primaryColor: mainColor),
-        darkTheme: ThemeData.dark().copyWith(primaryColor: mainColor),
-        home: RestartWidget(
-          child: context.orientation == Orientation.portrait ? const HomePage() : const Windows11MimicScreen(),
+    return RestartWidget(
+      child: Sizer(
+        builder: (context, orientation, deviceType) => GetMaterialApp(
+          themeMode: ThemeMode.system,
+          theme: ThemeData.from(colorScheme: ColorScheme.light(primary: mainColor)),
+          darkTheme: ThemeData.from(colorScheme: ColorScheme.dark(primary: mainColor)),
+          home: context.orientation == Orientation.portrait ? const HomePage() : const Windows11MimicScreen(),
         ),
       ),
     );
