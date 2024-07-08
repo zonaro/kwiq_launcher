@@ -1,35 +1,35 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
 import 'main_app.dart';
 
-late SharedPreferences prefs;
+late GetStorage prefs;
 
-int get gridColumns => prefs.getInt('gridColumns') ?? 4;
-set gridColumns(int value) => prefs.setInt('gridColumns', value);
+int get gridColumns => prefs.read('gridColumns') ?? 4;
+set gridColumns(int value) => prefs.write('gridColumns', value);
 
-int get limitSearch => prefs.getInt('limitSearch') ?? 20;
-set limitSearch(int value) => prefs.setInt('limitSearch', value);
+int get limitSearch => prefs.read('limitSearch') ?? 20;
+set limitSearch(int value) => prefs.write('limitSearch', value);
 
-Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fallbackColor;
-set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
+Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
+set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => (prefs.getStringList('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.value?.map((m) => m.appName) ?? [])).toList();
-set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat());
+List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.value?.map((m) => m.appName) ?? [])).toList();
+set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
 
-List<string> get hiddenApps => prefs.getStringList('hiddenApps') ?? [];
-set hiddenApps(List<String> value) => prefs.setStringList('hiddenApps', value.distinctFlat());
+List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? [];
+set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFlat());
 
-List<string> get dockedApps => prefs.getStringList('dockedApps') ?? [];
-set dockedApps(List<String> value) => prefs.setStringList('dockedApps', value.distinctFlat());
+List<string> get dockedApps => prefs.read<List<string>>('dockedApps') ?? [];
+set dockedApps(List<String> value) => prefs.write('dockedApps', value.distinctFlat());
 
-List<string> getCategoriesOf(string packageName) => <string>[...(prefs.getStringList('categories::$packageName') ?? []), apps.value?.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
-setCategoriesOf(string packageName, strings categories) => prefs.setStringList('categories::$packageName', categories);
+List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.value?.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
+setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories);
 
 final AwaiterData<List<Application>> apps = AwaiterData<List<Application>>();
 
@@ -89,12 +89,13 @@ IconData categoryIcon(String category) {
     "maps": Icons.map,
     "work": Icons.work,
   };
-  return category.getUniqueWords.whereValid.map((x) => categoryIcons[x.toLowerCase()]).firstOrNull ?? Icons.category;
+  return category.getUniqueWords.whereValid.map((x) => categoryIcons[x.toLowerCase()]).mostFrequent ?? Icons.category;
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  prefs = await SharedPreferences.getInstance();
+  await GetStorage.init();
+  prefs = GetStorage();
   SystemTheme.fallbackColor = "#f6373f".asColor;
   await SystemTheme.accentColor.load();
   mainColor = SystemTheme.accentColor.accent;

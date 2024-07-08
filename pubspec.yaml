@@ -16,7 +16,8 @@ dependencies:
   path:
   auto_size_text:
   intl:
-  shared_preferences:
+  get:
+  get_storage:
   url_launcher:
   flutter_contacts:
   system_theme:
@@ -26,11 +27,11 @@ dependencies:
   open_file:
   package_info_plus:
   flutter_storage_info:
-  get:
   percent_indicator:
   sizer:
   light_sensor:
   app_settings :
+  pluto_menu_bar :
   innerlibs:
     path: ../innerlibs_dart
 

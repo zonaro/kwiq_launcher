@@ -8,7 +8,7 @@ class AppTile extends StatefulWidget {
   const AppTile({
     super.key,
     required this.application,
-    required this.gridColumns,
+    this.gridColumns = 1,
     this.showLabel = true,
     required this.onPop,
   });
