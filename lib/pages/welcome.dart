@@ -26,7 +26,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(35.0),
               child: Image.asset('assets/kwiq.png'), // Replace with your app icon image
             ),
             const Padding(
@@ -61,13 +61,6 @@ class WelcomeScreen extends StatelessWidget {
           permission: Permission.manageExternalStorage,
           title: 'External Storage',
           description: "This application can list, open and manage files on your device without external applications.",
-        ),
-        const PermissionItem(
-          icon: Icons.image,
-          permission: Permission.photos,
-          title: 'Photos',
-          description: "Show photos from your gallery.",
-          majorPermission: false,
         ),
         const PermissionItem(
           icon: Icons.camera,
