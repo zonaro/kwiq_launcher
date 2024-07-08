@@ -31,21 +31,13 @@ class _AppPageState extends State<AppPage> {
           await showSearch(context: context, delegate: MyAppSearchDelegate());
           setState(() {});
         },
-        child: FutureAwaiter(
-          data: apps,
-          future: () async => await DeviceApps.getInstalledApplications(
-            includeAppIcons: true,
-            includeSystemApps: true,
-            onlyAppsWithLaunchIntent: true,
-          ),
-          builder: (_) => gridColumns > 1 ? appGrid() : appList(),
-        ),
+        child: gridColumns > 1 ? appGrid() : appList(),
       ),
     );
   }
 
   Widget appGrid() => SizedBox(
-        height: context.height * .98,
+        height: context.height,
         width: context.width,
         child: GridView.count(
           crossAxisCount: gridColumns,
@@ -56,7 +48,7 @@ class _AppPageState extends State<AppPage> {
                 contact: c,
                 gridColumns: gridColumns,
               ),
-            for (var application in filteredApps)
+            for (var application in dockedApps)
               AppTile(
                 application: application as ApplicationWithIcon,
                 gridColumns: gridColumns,
@@ -68,6 +60,7 @@ class _AppPageState extends State<AppPage> {
 
   Widget appList() => SizedBox(
         height: context.height,
+        width: context.width,
         child: ListView(
           shrinkWrap: true,
           children: [
@@ -76,7 +69,7 @@ class _AppPageState extends State<AppPage> {
                 contact: c,
                 gridColumns: gridColumns,
               ),
-            for (var application in filteredApps)
+            for (var application in dockedApps)
               AppTile(
                 application: application as ApplicationWithIcon,
                 gridColumns: 1,

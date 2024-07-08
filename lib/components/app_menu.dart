@@ -43,7 +43,6 @@ class MyAppMenuScreen extends StatelessWidget {
                 } else {
                   dockedApps = [...dockedApps, application.packageName];
                 }
-                apps.expired = true;
                 context.restartApp();
               },
               child: Text(dockedApps.flatContains(application.packageName) ? "Undock App" : 'Dock App'),
@@ -61,7 +60,6 @@ class MyAppMenuScreen extends StatelessWidget {
                 } else {
                   hiddenApps = [...hiddenApps, application.packageName];
                 }
-                apps.expired = true;
                 context.restartApp();
               },
               child: Text(hiddenApps.flatContains(application.packageName) ? 'Show App' : 'Hide App'),
@@ -77,7 +75,6 @@ class MyAppMenuScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () async {
                   if (await application.uninstallApp()) {
-                    apps.expired = true;
                     context.restartApp();
                   }
                 },

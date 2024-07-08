@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:get/get.dart' hide GetStringUtils;
 import 'package:innerlibs/file_extensions.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
@@ -39,132 +39,78 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  List<Application> get searchApps => filteredApps
-      .search(
-        searchTerm: query.removeFirstEqual(":"),
-        searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
-        levenshteinDistance: 2,
-        allIfEmpty: true,
-      )
-      .take(limitSearch)
-      .toList();
+  Future<List<Application>> get searchApps async {
+    try {
+      if (apps.isEmpty) {
+        apps = await DeviceApps.getInstalledApplications(
+          includeAppIcons: true,
+          includeSystemApps: true,
+          onlyAppsWithLaunchIntent: true,
+        );
+      }
 
-  List<Contact> get searchContacts => contacts
-      .search(
-        searchTerm: query.removeFirstEqual("@"),
-        searchOn: (contact) => [
-          contact.name.first,
-          contact.name.last,
-          contact.name.nickname,
-          contact.displayName,
-          ...contact.emails.map((e) => e.address),
-          ...contact.phones.map((e) => e.number),
-        ],
-        levenshteinDistance: 2,
-      )
-      .take(limitSearch)
-      .toList();
-
-  List<Widget> searchOn(bool showGoogleSuggestions) {
-    if (query.isNotEmpty) {
-      return [
-        if (showGoogleSuggestions)
-          FutureAwaiter(
-              future: () async => await query.fetchGoogleSuggestions(),
-              builder: (sugestions) {
-                return ExpansionTile(
-                  leading: const Icon(Icons.text_fields),
-                  title: sugestions.length.quantityText("Suggestions").asText(),
-                  initiallyExpanded: (searchContacts.isEmpty && searchApps.isEmpty && searchFiles.isEmpty),
-                  children: [
-                    for (var suggestion in sugestions)
-                      ListTile(
-                        title: Text(suggestion),
-                        leading: const Icon(
-                          Icons.text_fields,
-                        ),
-                        trailing: recentSearches.contains(suggestion)
-                            ? IconButton(
-                                icon: const Icon(Icons.delete_forever),
-                                onPressed: () {
-                                  recentSearches = recentSearches.where((x) => x != suggestion).toList();
-                                })
-                            : null,
-                        onTap: () {
-                          query = suggestion;
-                          // showResults(context);
-                        },
-                      ),
-                  ],
-                );
-              }),
-        if (query.isNumericOnly)
-          ListTile(
-            leading: const Icon(Icons.phone),
-            title: Text('Call "$query"'),
-            onTap: callNumber,
-          ),
-        if (query.isNumericOnly)
-          ListTile(
-            leading: const Icon(Icons.phone),
-            title: Text('Sms to "$query"'),
-            onTap: smsTo,
-          ),
-        if (query.isNumericOnly && (apps.value?.map((a) => a.packageName).toList().flatContainsAny(['com.whatsapp', 'com.whatsapp.w4b']) ?? false))
-          ListTile(
-            leading: const Icon(Icons.phone),
-            title: Text('WhatsApp to "$query"'),
-            onTap: whatsAppTo,
-          ),
-        if (query.isUrl)
-          ListTile(
-            leading: const Icon(Icons.link),
-            title: Text('Open URL "$query"'),
-            onTap: openUrl,
-          ),
-        if (query.isEmail)
-          ListTile(
-            leading: const Icon(Icons.email),
-            title: Text('New message to "$query"'),
-            onTap: openMail,
-          ),
-        ListTile(
-          leading: const Icon(Icons.search),
-          title: Text('Google Search for "$query"'),
-          onTap: googleSearch,
-        ),
-        ListTile(
-          leading: const Icon(Icons.search),
-          title: Text('Bing Search for "$query"'),
-          onTap: bingSearch,
-        ),
-        ListTile(
-          leading: const Icon(Icons.map),
-          title: Text('Maps Search for "$query"'),
-          onTap: mapSearch,
-        ),
-        if (apps.value?.map((a) => a.packageName).toList().flatContains(query) ?? false)
-          AppTile(
-            application: apps.value!.firstWhere((a) => a.packageName.flatContains(query)) as ApplicationWithIcon,
-            gridColumns: 1,
-            onPop: () => {},
-          ),
-      ];
-    } else {
+      return filteredApps
+          .search(
+            searchTerm: query.removeFirstEqual(":"),
+            searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
+            levenshteinDistance: 2,
+            allIfEmpty: true,
+          )
+          .take(limitSearch)
+          .toList();
+    } catch (e) {
+      consoleLog('Error: $e');
       return [];
     }
   }
 
-  List<Object> get suggestionList {
+  Future<List<Contact>> get searchContacts async {
+    try {
+      if (contacts.isEmpty) {
+        contacts = (await FlutterContacts.getContacts(
+          withAccounts: true,
+          withGroups: true,
+          deduplicateProperties: true,
+          withPhoto: true,
+          withThumbnail: true,
+          withProperties: true,
+          sorted: true,
+        ))
+            .toList();
+      }
+
+      return contacts
+          .search(
+            searchTerm: query.removeFirstEqual("@"),
+            searchOn: (contact) => [
+              contact.name.first,
+              contact.name.last,
+              contact.name.nickname,
+              contact.displayName,
+              ...contact.emails.map((e) => e.address),
+              ...contact.phones.map((e) => e.number),
+            ],
+            levenshteinDistance: 2,
+          )
+          .toList();
+    } catch (e) {
+      consoleLog('Error: $e');
+      return [];
+    }
+  }
+
+  Future<bool> get checkWhatsapp async => await DeviceApps.isAppInstalled('com.whatsapp') || await DeviceApps.isAppInstalled('com.whatsapp.w4b');
+
+  Future<List<Object>> get suggestionList async {
     if (query.isEmpty) {
       return [
         ListTile(
           title: Wrap(
             children: [
-              TextButton(onPressed: () => query = ":", child: const Text(": Apps")),
-              TextButton(onPressed: () => query = "@", child: const Text("@ Contacts")),
-              TextButton(onPressed: () => query = "#", child: const Text("# Categories")),
-              TextButton(onPressed: () => query = ">", child: const Text("> Files")),
+              TextButton.icon(icon: const Icon(Icons.apps), onPressed: () => query = ":", label: const Text(":Apps")),
+              TextButton.icon(icon: const Icon(Icons.person), onPressed: () => query = "@", label: const Text("@Contacts")),
+              TextButton.icon(icon: const Icon(Icons.category), onPressed: () => query = "#", label: const Text("#Categories")),
+              TextButton.icon(icon: const Icon(Icons.file_copy), onPressed: () => query = ">", label: const Text(">Files")),
             ],
           ),
         ),
@@ -190,16 +136,19 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
     return [
       recentSearches,
-      ...searchContacts,
-      ...searchApps,
+      await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""),
+      ...(await searchContacts),
+      ...(await searchApps),
       ...searchFiles,
     ].toList();
   }
 
+  var tokens = [':', '@', '#', '>'];
+
   List<File> get searchFiles {
+    final dir = Directory(fileController.controller.getCurrentDirectory.path);
+    List<File> files = [];
     try {
-      final dir = Directory(fileController.controller.getCurrentDirectory.path);
-      List<File> files = [];
       for (var file in dir.listSync(recursive: false).where((x) => x.path != '/storage/emulated/0/Android')) {
         if (file is Directory) {
           files.addAll(file.listSync(recursive: true).whereType<File>());
@@ -207,89 +156,144 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           files.add(file as File);
         }
       }
-      return files.search(searchTerm: query, searchOn: (file) => [file.fileName ?? file.fileNameWithoutExtension ?? file.path], levenshteinDistance: 2).take(limitSearch).toList();
     } catch (e) {
       consoleLog('Error: $e');
       return [];
     }
+    return files.search(searchTerm: query, searchOn: (file) => [file.fileName ?? file.fileNameWithoutExtension ?? file.path], levenshteinDistance: 2).toList();
   }
 
   @override
   Widget buildResults(BuildContext context) {
     recentSearches = [...recentSearches, query].whereValid.distinct().toList();
 
-    return baseWidgets(false);
+    return baseWidgets();
   }
 
   @override
-  Widget buildSuggestions(BuildContext context) => baseWidgets(true);
+  Widget buildSuggestions(BuildContext context) => baseWidgets();
 
-  Widget baseWidgets(bool showGoogleSuggestions) {
+  Widget baseWidgets() {
     return StatefulBuilder(builder: (context, setState) {
       if (preQuery.isNotEmpty) {
         query = preQuery;
         preQuery = '';
       }
       var catApps = filteredAppsByCategory[query] ?? [];
-      if (catApps.isNotEmpty) {
-        return ListView(
-          children: <Widget>[
-            for (var app in catApps)
-              AppTile(
-                application: app,
-                gridColumns: 1,
-                onPop: () => context.popUntilFirst(),
-              )
-          ],
-        );
-      } else {
-        return ListView(children: [
-          ...searchOn(showGoogleSuggestions),
-          const Divider(),
-          for (var suggestion in suggestionList)
-            if (suggestion is ApplicationWithIcon)
-              AppTile(
-                application: suggestion,
-                gridColumns: 1,
-                onPop: () => context.popUntilFirst(),
-              )
-            else if (suggestion is Contact)
-              ContactTile(contact: suggestion, gridColumns: 1)
-            else if (suggestion is File)
-              ListTile(
-                  title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
-                  leading: const Icon(Icons.file_copy),
-                  onTap: () => OpenFile.open(suggestion.path),
-                  onLongPress: () {
-                    fileController.controller.openDirectory(suggestion.parent);
-                    pageController.animateToPage(1, duration: 1.seconds, curve: Curves.easeInOut);
-                    context.pop();
-                  })
-            else if (suggestion is string)
-              ListTile(
-                title: Text(suggestion),
-                leading: const Icon(
-                  Icons.text_format,
+
+      return FutureAwaiter(
+        future: () async {
+          return (await suggestionList, await checkWhatsapp);
+        },
+        builder: (r) {
+          var items = r.$1;
+          var whats = r.$2;
+          return ListView(children: [
+            if (catApps.isNotEmpty)
+              for (var app in catApps)
+                AppTile(
+                  application: app,
+                  gridColumns: 1,
+                  onPop: () => context.popUntilFirst(),
                 ),
-                trailing: recentSearches.contains(suggestion)
-                    ? IconButton(
-                        icon: const Icon(Icons.delete_forever),
-                        onPressed: () {
-                          recentSearches = recentSearches.where((x) => x != suggestion).toList();
-                          setState(() {});
-                        })
-                    : null,
-                onTap: () {
-                  query = suggestion;
-                  // showResults(context);
-                },
-              )
-            else if (suggestion is Widget)
-              suggestion
-            else
-              const SizedBox.shrink()
-        ]);
-      }
+            if (!query.startsWithAny(tokens)) ...[
+              if (query.isNumericOnly)
+                ListTile(
+                  leading: const Icon(Icons.phone),
+                  title: Text('Call "$query"'),
+                  onTap: callNumber,
+                ),
+              if (query.isNumericOnly)
+                ListTile(
+                  leading: const Icon(Icons.phone),
+                  title: Text('Sms to "$query"'),
+                  onTap: smsTo,
+                ),
+              if (query.isNumericOnly && whats)
+                ListTile(
+                  leading: const Icon(Icons.phone),
+                  title: Text('WhatsApp to "$query"'),
+                  onTap: whatsAppTo,
+                ),
+              if (query.isUrl)
+                ListTile(
+                  leading: const Icon(Icons.link),
+                  title: Text('Open URL "$query"'),
+                  onTap: openUrl,
+                ),
+              if (query.isEmail)
+                ListTile(
+                  leading: const Icon(Icons.email),
+                  title: Text('New message to "$query"'),
+                  onTap: openMail,
+                ),
+              ListTile(
+                leading: const Icon(Icons.search),
+                title: Text('Google Search for "$query"'),
+                onTap: googleSearch,
+              ),
+              ListTile(
+                leading: const Icon(Icons.search),
+                title: Text('Bing Search for "$query"'),
+                onTap: bingSearch,
+              ),
+              ListTile(
+                leading: const Icon(Icons.map),
+                title: Text('Maps Search for "$query"'),
+                onTap: mapSearch,
+              ),
+              const Divider(),
+            ],
+            if (apps.any((a) => a.packageName.flatEqual(query)))
+              AppTile(
+                application: apps.firstWhere((a) => a.packageName.flatEqual(query)) as ApplicationWithIcon,
+                gridColumns: 1,
+                onPop: () => {},
+              ),
+            if (catApps.isEmpty)
+              for (var suggestion in items)
+                if (suggestion is ApplicationWithIcon)
+                  AppTile(
+                    application: suggestion,
+                    gridColumns: 1,
+                    onPop: () => context.popUntilFirst(),
+                  )
+                else if (suggestion is Contact)
+                  ContactTile(contact: suggestion, gridColumns: 1)
+                else if (suggestion is File)
+                  ListTile(
+                      title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
+                      leading: const Icon(Icons.file_copy),
+                      onTap: () => OpenFile.open(suggestion.path),
+                      onLongPress: () {
+                        fileController.controller.openDirectory(suggestion.parent);
+                        pageController.animateToPage(1, duration: 1.seconds, curve: Curves.easeInOut);
+                        context.pop();
+                      })
+                else if (suggestion is string)
+                  ListTile(
+                    title: Text(suggestion),
+                    leading: const Icon(
+                      Icons.text_format,
+                    ),
+                    trailing: recentSearches.contains(suggestion)
+                        ? IconButton(
+                            icon: const Icon(Icons.delete_forever),
+                            onPressed: () {
+                              recentSearches = recentSearches.where((x) => x != suggestion).toList();
+                              setState(() {});
+                            })
+                        : null,
+                    onTap: () {
+                      query = suggestion;
+                      showResults(context);
+                    },
+                  )
+                else
+                  suggestion.forceWidget() ?? const SizedBox.shrink(),
+          ]);
+        },
+      );
     });
   }
 

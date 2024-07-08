@@ -32,6 +32,7 @@ dependencies:
   light_sensor:
   app_settings :
   flutter_colorpicker :
+  gap:
   innerlibs:
     path: ../innerlibs_dart
 

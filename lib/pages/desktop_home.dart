@@ -58,45 +58,37 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                   // Ícones no centro
                   Row(
                     children: [
-                      FutureAwaiter(
-                        data: apps,
-                        future: () => DeviceApps.getInstalledApplications(
-                          includeAppIcons: true,
-                          includeSystemApps: true,
-                          onlyAppsWithLaunchIntent: true,
-                        ),
-                        builder: (_) => PopupMenuButton(
-                          position: PopupMenuPosition.over,
-                          icon: const Icon(Icons.apps),
-                          iconColor: mainColor,
-                          itemBuilder: (BuildContext context) {
-                            return [
-                              for (var k in filteredAppsByCategory.keys)
-                                PopupMenuItem(
-                                  child: PopupMenuButton(
-                                      child: Row(
-                                        children: [
-                                          categoryIcon(k).asIcon(),
-                                          Text(k.toTitleCase),
-                                        ],
-                                      ),
-                                      itemBuilder: (BuildContext context) {
-                                        return [
-                                          for (var app in filteredAppsByCategory[k] ?? [])
-                                            PopupMenuItem(
-                                              value: app.appName,
-                                              child: AppTile(
-                                                onPop: () {},
-                                                gridColumns: 1,
-                                                application: app,
-                                              ),
-                                            )
-                                        ];
-                                      }),
-                                ),
-                            ];
-                          },
-                        ),
+                      PopupMenuButton(
+                        position: PopupMenuPosition.over,
+                        icon: const Icon(Icons.apps),
+                        iconColor: mainColor,
+                        itemBuilder: (BuildContext context) {
+                          return [
+                            for (var k in filteredAppsByCategory.keys)
+                              PopupMenuItem(
+                                child: PopupMenuButton(
+                                    child: Row(
+                                      children: [
+                                        categoryIcon(k).asIcon(),
+                                        Text(k.toTitleCase),
+                                      ],
+                                    ),
+                                    itemBuilder: (BuildContext context) {
+                                      return [
+                                        for (var app in filteredAppsByCategory[k] ?? [])
+                                          PopupMenuItem(
+                                            value: app.appName,
+                                            child: AppTile(
+                                              onPop: () {},
+                                              gridColumns: 1,
+                                              application: app,
+                                            ),
+                                          )
+                                      ];
+                                    }),
+                              ),
+                          ];
+                        },
                       ),
                       Padding(
                         padding: const EdgeInsets.all(8.0),

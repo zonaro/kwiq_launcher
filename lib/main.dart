@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:system_theme/system_theme.dart';
 
 import 'main_app.dart';
@@ -19,7 +18,7 @@ set limitSearch(int value) => prefs.write('limitSearch', value);
 Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.value?.map((m) => m.appName) ?? [])).toList();
+List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName) )).toList();
 set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
 
 List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? [];
@@ -28,17 +27,17 @@ set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFl
 List<string> get dockedApps => prefs.read<List<string>>('dockedApps') ?? [];
 set dockedApps(List<String> value) => prefs.write('dockedApps', value.distinctFlat());
 
-List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.value?.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
+List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
 setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories);
 
-final AwaiterData<List<Application>> apps = AwaiterData<List<Application>>();
+List<Application> apps = [];
 
 Map<string, List<Application>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
-List<Application> get filteredApps => apps.value?.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList() ?? [];
+List<Application> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
 
 List<Future<Application?>> get dockedAppsList => dockedApps.where((app) => !hiddenApps.flatContains(app)).map((x) => DeviceApps.getApp(x, true)).toList();
 
-strings get categories => apps.value?.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList() ?? [];
+strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList() ;
 
 List<Contact> contacts = [];
 
@@ -97,22 +96,6 @@ void main() async {
   await GetStorage.init();
   prefs = GetStorage();
   SystemTheme.fallbackColor = "#f6373f".asColor;
-  await Permission.photos.request();
-  await Permission.videos.request();
-  await Permission.calendarFullAccess.request();
-  await Permission.location.request();
-  await Permission.manageExternalStorage.request();
 
-  if (await FlutterContacts.requestPermission()) {
-    contacts = await FlutterContacts.getContacts(
-      withProperties: true,
-      withPhoto: true,
-      withAccounts: true,
-      withGroups: true,
-      deduplicateProperties: true,
-      sorted: true,
-      withThumbnail: true,
-    );
-  }
   runApp(const MainApp());
 }
