@@ -31,7 +31,7 @@ dependencies:
   sizer:
   light_sensor:
   app_settings :
-  pluto_menu_bar :
+  flutter_colorpicker :
   innerlibs:
     path: ../innerlibs_dart
 

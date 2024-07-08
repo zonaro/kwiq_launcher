@@ -36,7 +36,7 @@ final AwaiterData<List<Application>> apps = AwaiterData<List<Application>>();
 Map<string, List<Application>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
 List<Application> get filteredApps => apps.value?.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList() ?? [];
 
-List<Application> get dockedAppsList => filteredApps.where((app) => dockedApps.contains(app.packageName) && !hiddenApps.contains(app.packageName)).toList();
+List<Future<Application?>> get dockedAppsList => dockedApps.where((app) => !hiddenApps.flatContains(app)).map((x) => DeviceApps.getApp(x, true)).toList();
 
 strings get categories => apps.value?.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList() ?? [];
 
@@ -97,9 +97,6 @@ void main() async {
   await GetStorage.init();
   prefs = GetStorage();
   SystemTheme.fallbackColor = "#f6373f".asColor;
-  await SystemTheme.accentColor.load();
-  mainColor = SystemTheme.accentColor.accent;
-
   await Permission.photos.request();
   await Permission.videos.request();
   await Permission.calendarFullAccess.request();

@@ -67,10 +67,10 @@ class _FilePageState extends State<FilePage> {
                             child: ListView(
                               scrollDirection: Axis.horizontal,
                               children: [
-                                if (fileController.documentSize > 0) fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder, orange),
-                                if (fileController.videoSize > 0) fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front, mainColor),
-                                if (fileController.imageSize > 0) fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image, black),
-                                if (fileController.soundSize > 0) fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music, orange),
+                                if (fileController.documentSize > 0) fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder),
+                                if (fileController.videoSize > 0) fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front),
+                                if (fileController.imageSize > 0) fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image),
+                                if (fileController.soundSize > 0) fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music),
                               ],
                             ),
                           ),
@@ -133,7 +133,7 @@ class _FilePageState extends State<FilePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.play_arrow, color: orange),
+                      Icon(Icons.play_arrow, color: mainColor),
                       const Text("Open"),
                     ],
                   ),
@@ -143,7 +143,7 @@ class _FilePageState extends State<FilePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.delete, color: orange),
+                      Icon(Icons.delete, color: mainColor),
                       const Text("Delete"),
                     ],
                   ),
@@ -243,7 +243,7 @@ class _FilePageState extends State<FilePage> {
                 ),
               )
             : Card(
-                color: orange,
+                color: mainColor,
                 elevation: 0,
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -331,7 +331,7 @@ class _FilePageState extends State<FilePage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.folder_open, color: orange),
+                        Icon(Icons.folder_open, color: mainColor),
                         const Text("New Folder"),
                       ],
                     ),

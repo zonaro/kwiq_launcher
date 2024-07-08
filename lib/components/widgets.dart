@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
+import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/constants.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -40,14 +41,15 @@ Widget storagePercentWidget(int totalStorage, int usedStorage) => Container(
             radius: 31.0,
             lineWidth: 5.0,
             percent: usedStorage / totalStorage,
-            progressColor: orange,
-            backgroundColor: orage2,
+            progressColor: mainColor,
+            backgroundColor: mainColor.withOpacity(0.2),
           )
         ],
       ),
     );
 
-Widget fileTypeWidget(String type, String size, IconData icon, Color color) {
+Widget fileTypeWidget(String type, String size, IconData icon) {
+  Color color = type.asColor;
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 8.0),
     child: ClipRRect(
@@ -119,7 +121,7 @@ Widget subtitle(FileSystemEntity entity) {
             fontWeight: FontWeight.w400,
           ),
         );
-      } else {}
+      }  
       return const Text("");
     },
   );
