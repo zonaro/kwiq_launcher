@@ -4,7 +4,9 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:kwiq_launcher/components/categories.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyAppMenuScreen extends StatelessWidget {
   final string packageName;
@@ -56,6 +58,11 @@ class MyAppMenuScreen extends StatelessWidget {
                 child: const Text('App Settings'),
               ),
               ElevatedButton(
+                  onPressed: () {
+                    launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=${app.packageName}"));
+                  },
+                  child: const Text("Show on PlayStore")),
+              ElevatedButton(
                 onPressed: () {
                   if (hiddenApps.flatContains(app.packageName)) {
                     hiddenApps = hiddenApps.where((element) => element != app.packageName).toList();
@@ -67,9 +74,9 @@ class MyAppMenuScreen extends StatelessWidget {
                 child: Text(hiddenApps.flatContains(app.packageName) ? 'Show App' : 'Hide App'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  // setCategoriesOf(widget.application.packageName, categories)
-                  context.showSnackBar("Soon to be implemented");
+                onPressed: () async {
+                  await context.push(CategoriesPage(packageName: app.packageName));
+                  context.restartApp();
                 },
                 child: const Text('Set Categories'),
               ),

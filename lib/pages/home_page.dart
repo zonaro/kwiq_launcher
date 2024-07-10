@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: GestureDetector(
+      floatingActionButton: InkWell(
         onLongPress: () async {
           if (categories.isNotEmpty) {
             await showModalBottomSheet(
@@ -46,11 +47,23 @@ class _HomePageState extends State<HomePage> {
             );
           }
         },
-        child: FloatingActionButton(
-          child: const Icon(Icons.search),
-          onPressed: () async {
-            await showSearch(context: context, delegate: MyAppSearchDelegate());
-          },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            for (var token in tokens)
+              FloatingActionButton.small(
+                child: Text(token),
+                onPressed: () async {
+                  await showSearch(context: context, delegate: MyAppSearchDelegate(token));
+                },
+              ),
+            FloatingActionButton(
+              child: const Icon(Icons.search),
+              onPressed: () async {
+                await showSearch(context: context, delegate: MyAppSearchDelegate());
+              },
+            ),
+          ].insertBetween(const Gap(10)),
         ),
       ),
       appBar: AppBar(

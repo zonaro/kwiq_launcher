@@ -14,9 +14,6 @@ late GetStorage prefs;
 int get gridColumns => prefs.read('gridColumns') ?? 4;
 set gridColumns(int value) => prefs.write('gridColumns', value);
 
-int get limitSearch => prefs.read('limitSearch') ?? 20;
-set limitSearch(int value) => prefs.write('limitSearch', value);
-
 Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
@@ -30,7 +27,9 @@ List<string> get homeApps => prefs.read<List<string>>('dockedApps') ?? [];
 set homeApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
 
 List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
-setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories);
+setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories.distinctFlat());
+addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
+removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
 
 List<Application> apps = [];
 

@@ -56,7 +56,6 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             levenshteinDistance: 2,
             allIfEmpty: true,
           )
-          .take(limitSearch)
           .toList();
     } catch (e) {
       consoleLog('Error: $e');
@@ -135,8 +134,10 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     }
 
     return [
-      ...recentSearches,
-      ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? "")),
+      ...[
+        ...recentSearches,
+        ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? "")),
+      ].distinctFlat(),
       ...(await searchContacts),
       ...(await searchApps),
       ...searchFiles,
