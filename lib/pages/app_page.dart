@@ -49,9 +49,8 @@ class _AppPageState extends State<AppPage> {
               ),
             for (var application in homeApps)
               AppTile(
-                packageName: application,
+                app: application,
                 gridColumns: gridColumns,
-                onPop: () => setState(() {}),
               ),
           ],
         ),
@@ -70,9 +69,8 @@ class _AppPageState extends State<AppPage> {
               ),
             for (var application in homeApps)
               AppTile(
-                packageName: application,
+                app: application,
                 gridColumns: 1,
-                onPop: () => setState(() {}),
               ),
             SizedBox(
               height: context.height * .12,

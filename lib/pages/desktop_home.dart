@@ -31,8 +31,7 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                 for (var application in homeApps)
                   AppTile(
                     gridColumns: 1,
-                    packageName: application,
-                    onPop: () {},
+                    app: application,
                   ),
               ],
             ),
@@ -78,9 +77,8 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                                           PopupMenuItem(
                                             value: app.appName,
                                             child: AppTile(
-                                              onPop: () {},
                                               gridColumns: 1,
-                                              packageName: app,
+                                              app: app,
                                             ),
                                           )
                                       ];
@@ -114,9 +112,8 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                       ),
                       for (var app in homeApps)
                         AppTile(
-                          onPop: () {},
                           gridColumns: 1,
-                          packageName: app,
+                          app: app,
                         ),
                     ],
                   ),

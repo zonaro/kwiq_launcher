@@ -1,11 +1,12 @@
+import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 
 class CategoriesPage extends StatefulWidget {
-  final String packageName;
+  final ApplicationWithIcon app;
 
-  const CategoriesPage({super.key, required this.packageName});
+  const CategoriesPage({super.key, required this.app});
 
   @override
   State<CategoriesPage> createState() => _CategoriesPageState();
@@ -22,16 +23,17 @@ class _CategoriesPageState extends State<CategoriesPage> {
         children: [
           for (var cat in categories)
             CheckboxListTile(
+              enabled: !cat.flatEqual(widget.app.category.name),
               title: Text(cat.toTitleCase),
-              value: getCategoriesOf(widget.packageName).contains(cat),
+              value: getCategoriesOf(widget.app.packageName).contains(cat),
               onChanged: (bool? value) {
                 if (value!) {
                   setState(() {
-                    addCategory(widget.packageName, cat);
+                    addCategory(widget.app.packageName, cat);
                   });
                 } else {
                   setState(() {
-                    removeCategory(widget.packageName, cat);
+                    removeCategory(widget.app.packageName, cat);
                   });
                 }
               },
@@ -43,7 +45,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           var category = await context.prompt(title: 'New Category');
           if (category.isNotBlank) {
             setState(() {
-              addCategory(widget.packageName, category!);
+              addCategory(widget.app.packageName, category!);
             });
           }
         },

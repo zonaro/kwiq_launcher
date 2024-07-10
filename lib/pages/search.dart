@@ -42,11 +42,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   Future<List<Application>> get searchApps async {
     try {
       if (apps.isEmpty) {
-        apps = await DeviceApps.getInstalledApplications(
-          includeAppIcons: true,
-          includeSystemApps: true,
-          onlyAppsWithLaunchIntent: true,
-        );
+        await loadApps();
       }
 
       return filteredApps
@@ -190,9 +186,8 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             if (catApps.isNotEmpty)
               for (var app in catApps)
                 AppTile(
-                  packageName: app.packageName,
+                  app: app,
                   gridColumns: 1,
-                  onPop: () => context.popUntilFirst(),
                 ),
             if (query.isNotBlank && !query.startsWithAny(tokens)) ...[
               if (query.isNumericOnly)
@@ -244,17 +239,15 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             ],
             if (apps.any((a) => a.packageName.flatEqual(query)))
               AppTile(
-                packageName: apps.firstWhere((a) => a.packageName.flatEqual(query)).packageName,
+                app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
                 gridColumns: 1,
-                onPop: () => {},
               ),
             if (catApps.isEmpty)
               for (var suggestion in items)
                 if (suggestion is ApplicationWithIcon)
                   AppTile(
-                    packageName: suggestion.packageName,
+                    app: suggestion,
                     gridColumns: 1,
-                    onPop: () => context.popUntilFirst(),
                   )
                 else if (suggestion is Contact)
                   ContactTile(contact: suggestion, gridColumns: 1)

@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:kwiq_launcher/main_app.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -21,8 +23,8 @@ class WelcomeScreen extends StatelessWidget {
         ),
       ),
       body: SizedBox(
-        width: context.width,
-        height: context.height,
+        width: Get.width,
+        height: Get.height,
         child: Column(
           children: [
             Padding(
@@ -46,7 +48,7 @@ class WelcomeScreen extends StatelessWidget {
                 children: permissionList,
               ),
             ),
-            Gap(context.height * .12),
+            Gap(Get.height * .12),
           ],
         ),
       ),
@@ -121,6 +123,7 @@ class _PermissionItemState extends State<PermissionItem> {
           var v = await widget.permission.request();
           // Handle permission status here
           context.restartApp();
+          Get.off(const MainApp());
         },
       ),
     );

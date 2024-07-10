@@ -7,7 +7,7 @@ import 'package:system_theme/system_theme.dart';
 
 import 'main_app.dart';
 
-var tokens = [':', '@', '#', '>'];
+const tokens = [':', '@', '#', '>'];
 
 late GetStorage prefs;
 
@@ -17,30 +17,56 @@ set gridColumns(int value) => prefs.write('gridColumns', value);
 Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
+List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? <string>[]).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
 set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
 
-List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? [];
+List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? <string>[];
 set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFlat());
 
-List<string> get homeApps => prefs.read<List<string>>('dockedApps') ?? [];
-set homeApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
+List<string> get dockedApps => prefs.read<List<string>>('dockedApps') ?? <string>[];
+set dockedApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
+
+List<ApplicationWithIcon> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).toList();
 
 List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
 setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories.distinctFlat());
 addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
 removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
 
-List<Application> apps = [];
+List<ApplicationWithIcon> apps = [];
 
-Map<string, List<Application>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
-List<Application> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
+Map<string, List<ApplicationWithIcon>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
+List<ApplicationWithIcon> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
 
 strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
 
 List<Contact> contacts = [];
 
 List<Contact> get starredContacts => contacts.where((contact) => contact.isStarred).toList();
+
+Future<List<Contact>> loadContacts() async {
+  contacts = await FlutterContacts.getContacts(
+    withProperties: true,
+    withPhoto: true,
+    withAccounts: true,
+    withGroups: true,
+    withThumbnail: true,
+    deduplicateProperties: true,
+    sorted: true,
+  );
+  return contacts;
+}
+
+Future<List<ApplicationWithIcon>> loadApps() async {
+  apps.clear();
+  var a = await DeviceApps.getInstalledApplications(
+    includeAppIcons: true,
+    includeSystemApps: true,
+    onlyAppsWithLaunchIntent: true,
+  );
+  apps.addAll(a.map((x) => x as ApplicationWithIcon));
+  return apps;
+}
 
 IconData categoryIcon(String category) {
   final Map<String, IconData> categoryIcons = {

@@ -36,20 +36,20 @@ class MyAppMenuScreen extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  DeviceApps.openApp(app.packageName);
+                  app.openApp();
                 },
                 child: const Text('Open App'),
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (homeApps.flatContains(app.packageName)) {
-                    homeApps = homeApps.where((e) => e != app.packageName).toList();
+                  if (dockedApps.flatContains(app.packageName)) {
+                    dockedApps = dockedApps.where((e) => e != app.packageName).toList();
                   } else {
-                    homeApps = [...homeApps, app.packageName];
+                    dockedApps = [...dockedApps, app.packageName];
                   }
                   context.restartApp();
                 },
-                child: Text(homeApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
+                child: Text(dockedApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -75,7 +75,7 @@ class MyAppMenuScreen extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  await context.push(CategoriesPage(packageName: app.packageName));
+                  await context.push(CategoriesPage(app: app));
                   context.restartApp();
                 },
                 child: const Text('Set Categories'),
@@ -85,6 +85,8 @@ class MyAppMenuScreen extends StatelessWidget {
                   onPressed: () async {
                     if (await app.uninstallApp()) {
                       context.restartApp();
+                      context.popUntilFirst();
+                      
                     }
                   },
                   child: const Text('Uninstall App'),

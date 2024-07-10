@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart' hide ContextExtensionss;
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
@@ -18,20 +16,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => RestartWidget(
         onRestart: (context) async {
-          apps = await DeviceApps.getInstalledApplications(
-            includeAppIcons: true,
-            includeSystemApps: true,
-            onlyAppsWithLaunchIntent: true,
-          );
-          contacts = await FlutterContacts.getContacts(
-            withProperties: true,
-            withPhoto: true,
-            withAccounts: true,
-            withGroups: true,
-            withThumbnail: true,
-            deduplicateProperties: true,
-            sorted: true,
-          );
+          await loadApps();
+          await loadContacts();
         },
         child: GetMaterialApp(
           themeMode: ThemeMode.system,
@@ -41,11 +27,21 @@ class MainApp extends StatelessWidget {
             builder: (context, orientation, deviceType) => FutureAwaiter(
               data: AwaiterData(validate: false),
               future: () => WelcomeScreen.allowed,
-              builder: (a) => a
-                  ? orientation == Orientation.portrait
-                      ? const HomePage()
-                      : const Windows11MimicScreen()
-                  : const WelcomeScreen(),
+              builder: (a) => FutureAwaiter(
+                future: () async {
+                  if (apps.isEmpty) {
+                    await loadApps();
+                  }
+                  if (contacts.isEmpty) {
+                    await loadContacts();
+                  }
+                },
+                builder: (_) => a
+                    ? orientation == Orientation.portrait
+                        ? const HomePage()
+                        : const Windows11MimicScreen()
+                    : const WelcomeScreen(),
+              ),
             ),
           ),
         ),
