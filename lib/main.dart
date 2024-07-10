@@ -7,6 +7,8 @@ import 'package:system_theme/system_theme.dart';
 
 import 'main_app.dart';
 
+var tokens = [':', '@', '#', '>'];
+
 late GetStorage prefs;
 
 int get gridColumns => prefs.read('gridColumns') ?? 4;
@@ -18,14 +20,14 @@ set limitSearch(int value) => prefs.write('limitSearch', value);
 Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName) )).toList();
+List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? []).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
 set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
 
 List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? [];
 set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFlat());
 
-List<string> get dockedApps => prefs.read<List<string>>('dockedApps') ?? [];
-set dockedApps(List<String> value) => prefs.write('dockedApps', value.distinctFlat());
+List<string> get homeApps => prefs.read<List<string>>('dockedApps') ?? [];
+set homeApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
 
 List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
 setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories);
@@ -35,9 +37,7 @@ List<Application> apps = [];
 Map<string, List<Application>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
 List<Application> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
 
-List<Future<Application?>> get dockedAppsList => dockedApps.where((app) => !hiddenApps.flatContains(app)).map((x) => DeviceApps.getApp(x, true)).toList();
-
-strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList() ;
+strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
 
 List<Contact> contacts = [];
 

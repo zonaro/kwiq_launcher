@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
@@ -48,9 +47,9 @@ class _AppPageState extends State<AppPage> {
                 contact: c,
                 gridColumns: gridColumns,
               ),
-            for (var application in dockedApps)
+            for (var application in homeApps)
               AppTile(
-                application: application as ApplicationWithIcon,
+                packageName: application,
                 gridColumns: gridColumns,
                 onPop: () => setState(() {}),
               ),
@@ -69,9 +68,9 @@ class _AppPageState extends State<AppPage> {
                 contact: c,
                 gridColumns: gridColumns,
               ),
-            for (var application in dockedApps)
+            for (var application in homeApps)
               AppTile(
-                application: application as ApplicationWithIcon,
+                packageName: application,
                 gridColumns: 1,
                 onPop: () => setState(() {}),
               ),

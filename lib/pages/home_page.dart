@@ -53,7 +53,6 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Padding(

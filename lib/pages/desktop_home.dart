@@ -1,4 +1,3 @@
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
@@ -29,10 +28,10 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                     contact: c,
                     gridColumns: gridColumns,
                   ),
-                for (var application in filteredApps)
+                for (var application in homeApps)
                   AppTile(
                     gridColumns: 1,
-                    application: application as ApplicationWithIcon,
+                    packageName: application,
                     onPop: () {},
                   ),
               ],
@@ -81,7 +80,7 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                                             child: AppTile(
                                               onPop: () {},
                                               gridColumns: 1,
-                                              application: app,
+                                              packageName: app,
                                             ),
                                           )
                                       ];
@@ -113,11 +112,12 @@ class _Windows11MimicScreenState extends State<Windows11MimicScreen> {
                         icon: const Icon(Icons.folder_open),
                         onPressed: () {},
                       ),
-                      for (var app in dockedAppsList)
-                        IconButton(
-                          icon: Image.memory((app as ApplicationWithIcon).icon),
-                          onPressed: () {},
-                        )
+                      for (var app in homeApps)
+                        AppTile(
+                          onPop: () {},
+                          gridColumns: 1,
+                          packageName: app,
+                        ),
                     ],
                   ),
                   // Ícones à direita

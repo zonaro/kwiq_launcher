@@ -135,15 +135,13 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     }
 
     return [
-      recentSearches,
-      await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""),
+      ...recentSearches,
+      ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? "")),
       ...(await searchContacts),
       ...(await searchApps),
       ...searchFiles,
     ].toList();
   }
-
-  var tokens = [':', '@', '#', '>'];
 
   List<File> get searchFiles {
     final dir = Directory(fileController.controller.getCurrentDirectory.path);
@@ -179,24 +177,23 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
         query = preQuery;
         preQuery = '';
       }
-      var catApps = filteredAppsByCategory[query] ?? [];
-
       return FutureAwaiter(
         future: () async {
           return (await suggestionList, await checkWhatsapp);
         },
         builder: (r) {
+          var catApps = filteredAppsByCategory[query] ?? [];
           var items = r.$1;
           var whats = r.$2;
           return ListView(children: [
             if (catApps.isNotEmpty)
               for (var app in catApps)
                 AppTile(
-                  application: app,
+                  packageName: app.packageName,
                   gridColumns: 1,
                   onPop: () => context.popUntilFirst(),
                 ),
-            if (!query.startsWithAny(tokens)) ...[
+            if (query.isNotBlank && !query.startsWithAny(tokens)) ...[
               if (query.isNumericOnly)
                 ListTile(
                   leading: const Icon(Icons.phone),
@@ -246,7 +243,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
             ],
             if (apps.any((a) => a.packageName.flatEqual(query)))
               AppTile(
-                application: apps.firstWhere((a) => a.packageName.flatEqual(query)) as ApplicationWithIcon,
+                packageName: apps.firstWhere((a) => a.packageName.flatEqual(query)).packageName,
                 gridColumns: 1,
                 onPop: () => {},
               ),
@@ -254,7 +251,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
               for (var suggestion in items)
                 if (suggestion is ApplicationWithIcon)
                   AppTile(
-                    application: suggestion,
+                    packageName: suggestion.packageName,
                     gridColumns: 1,
                     onPop: () => context.popUntilFirst(),
                   )
