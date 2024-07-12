@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:kwiq_launcher/main_app.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -123,7 +122,6 @@ class _PermissionItemState extends State<PermissionItem> {
           var v = await widget.permission.request();
           // Handle permission status here
           context.restartApp();
-          Get.off(const MainApp());
         },
       ),
     );
