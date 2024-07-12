@@ -26,7 +26,7 @@ class MainApp extends StatelessWidget {
           home: Sizer(
             builder: (context, orientation, deviceType) => FutureAwaiter(
               data: AwaiterData(validate: false),
-              future: () => WelcomeScreen.allowed,
+              future: () async => await WelcomeScreen.allowed,
               builder: (a) => FutureAwaiter(
                 future: () async {
                   if (apps.isEmpty) {
