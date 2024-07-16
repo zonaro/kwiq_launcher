@@ -45,6 +45,8 @@ List<Contact> contacts = [];
 List<Contact> get starredContacts => contacts.where((contact) => contact.isStarred).toList();
 
 Future<List<Contact>> loadContacts() async {
+  await FlutterContacts.requestPermission();
+
   contacts = await FlutterContacts.getContacts(
     withProperties: true,
     withPhoto: true,
@@ -58,13 +60,12 @@ Future<List<Contact>> loadContacts() async {
 }
 
 Future<List<ApplicationWithIcon>> loadApps() async {
-  apps.clear();
   var a = await DeviceApps.getInstalledApplications(
     includeAppIcons: true,
     includeSystemApps: true,
     onlyAppsWithLaunchIntent: true,
   );
-  apps.addAll(a.map((x) => x as ApplicationWithIcon));
+  apps = [...a.map((x) => x as ApplicationWithIcon)];
   return apps;
 }
 

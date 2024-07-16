@@ -25,22 +25,27 @@ class MainApp extends StatelessWidget {
           darkTheme: ThemeData.from(colorScheme: ColorScheme.dark(primary: mainColor)),
           home: Sizer(
             builder: (context, orientation, deviceType) => FutureAwaiter(
-              data: AwaiterData(validate: false),
+              data: AwaiterData<bool>(validate: false),
               future: () async => await WelcomeScreen.allowed,
               builder: (a) => FutureAwaiter(
                 future: () async {
-                  if (apps.isEmpty) {
-                    await loadApps();
+                  if (a) {
+                    if (apps.isEmpty) {
+                      await loadApps();
+                    }
+                    if (contacts.isEmpty) {
+                      await loadContacts();
+                    }
                   }
-                  if (contacts.isEmpty) {
-                    await loadContacts();
-                  }
+                  return a;
                 },
-                builder: (_) => a
+                builder: (_) {
+                  return a
                     ? orientation == Orientation.portrait
                         ? const HomePage()
                         : const Windows11MimicScreen()
-                    : const WelcomeScreen(),
+                    : const WelcomeScreen();
+                },
               ),
             ),
           ),
