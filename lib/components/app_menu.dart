@@ -47,7 +47,6 @@ class MyAppMenuScreen extends StatelessWidget {
                   } else {
                     dockedApps = [...dockedApps, app.packageName];
                   }
-                  context.restartApp();
                 },
                 child: Text(dockedApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
               ),
@@ -69,14 +68,12 @@ class MyAppMenuScreen extends StatelessWidget {
                   } else {
                     hiddenApps = [...hiddenApps, app.packageName];
                   }
-                  context.restartApp();
                 },
                 child: Text(hiddenApps.flatContains(app.packageName) ? 'Show App' : 'Hide App'),
               ),
               ElevatedButton(
                 onPressed: () async {
                   await context.push(CategoriesPage(app: app));
-                  context.restartApp();
                 },
                 child: const Text('Set Categories'),
               ),
@@ -84,9 +81,7 @@ class MyAppMenuScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async {
                     if (await app.uninstallApp()) {
-                      context.restartApp();
-                      context.popUntilFirst();
-                      
+                      apps = apps.where((element) => element.packageName != app.packageName).toList();
                     }
                   },
                   child: const Text('Uninstall App'),

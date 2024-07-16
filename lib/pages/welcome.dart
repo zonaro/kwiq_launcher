@@ -15,40 +15,40 @@ class WelcomeScreen extends StatelessWidget {
       floatingActionButton: FutureAwaiter(
         future: () async => await allowed,
         builder: (x) => FloatingActionButton.extended(
-          onPressed: () {
-            context.restartApp();
-          },
+          onPressed: () {},
           label: const Text('Continue'),
         ),
       ),
-      body: SizedBox(
-        width: Get.width,
-        height: Get.height,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(35.0),
-              child: Image.asset('assets/kwiq.png'), // Replace with your app icon image
-            ),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Welcome to Kwiq Launcher!',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  Text("First, we need some permissions to get started."),
-                ],
+      body: SafeArea(
+        child: SizedBox(
+          width: Get.width,
+          height: Get.height,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(35.0),
+                child: Image.asset('assets/kwiq.png'), // Replace with your app icon image
               ),
-            ),
-            Expanded(
-              child: ListView(
-                children: permissionList,
+              const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Welcome to Kwiq Launcher!',
+                      style: TextStyle(fontSize: 24),
+                    ),
+                    Text("First, we need some permissions to get started."),
+                  ],
+                ),
               ),
-            ),
-            Gap(Get.height * .12),
-          ],
+              Expanded(
+                child: ListView(
+                  children: permissionList,
+                ),
+              ),
+              Gap(Get.height * .12),
+            ],
+          ),
         ),
       ),
     );
@@ -121,7 +121,7 @@ class _PermissionItemState extends State<PermissionItem> {
         onTap: () async {
           var v = await widget.permission.request();
           // Handle permission status here
-          context.restartApp();
+          Get.reloadAll(force: true);
         },
       ),
     );

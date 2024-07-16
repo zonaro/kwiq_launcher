@@ -14,40 +14,26 @@ class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
-  Widget build(BuildContext context) => RestartWidget(
-        onRestart: (context) async {
-          await loadApps();
-          await loadContacts();
-        },
-        child: GetMaterialApp(
-          themeMode: ThemeMode.system,
-          theme: ThemeData.from(colorScheme: ColorScheme.light(primary: mainColor)),
-          darkTheme: ThemeData.from(colorScheme: ColorScheme.dark(primary: mainColor)),
-          home: Sizer(
-            builder: (context, orientation, deviceType) => FutureAwaiter(
-              data: AwaiterData<bool>(validate: false),
-              future: () async => await WelcomeScreen.allowed,
-              builder: (a) => FutureAwaiter(
-                future: () async {
-                  if (a) {
-                    if (apps.isEmpty) {
-                      await loadApps();
-                    }
-                    if (contacts.isEmpty) {
-                      await loadContacts();
-                    }
-                  }
-                  return a;
-                },
-                builder: (_) {
-                  return a
-                    ? orientation == Orientation.portrait
-                        ? const HomePage()
-                        : const Windows11MimicScreen()
-                    : const WelcomeScreen();
-                },
-              ),
-            ),
+  Widget build(BuildContext context) => GetMaterialApp(
+        themeMode: ThemeMode.system,
+        theme: ThemeData.from(colorScheme: ColorScheme.light(primary: mainColor)),
+        darkTheme: ThemeData.from(colorScheme: ColorScheme.dark(primary: mainColor)),
+        home: Sizer(
+          builder: (context, orientation, deviceType) => FutureBool(
+            future: () async {
+              var a = await WelcomeScreen.allowed;
+              if (a) {
+                if (apps.isEmpty) {
+                  await loadApps();
+                }
+                if (contacts.isEmpty) {
+                  await loadContacts();
+                }
+              }
+              return a;
+            }(),
+            trueWidget: orientation == Orientation.portrait ? const HomePage() : const Windows11MimicScreen(),
+            falseWidget: const WelcomeScreen(),
           ),
         ),
       );

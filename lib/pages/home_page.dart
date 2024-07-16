@@ -77,7 +77,6 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.settings),
             onPressed: () async {
               await context.push(const SettingsScreen());
-              context.restartApp();
             },
           ),
         ],

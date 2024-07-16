@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -97,7 +98,8 @@ void showColorPicker(BuildContext context) {
             child: context.materialLocalizations.okButtonLabel.asText(),
             onPressed: () {
               mainColor = selectedColor;
-              context.restartApp();
+
+              Get.changeTheme(ThemeData.from(colorScheme: Get.isDarkMode ? ColorScheme.dark(primary: mainColor) : ColorScheme.light(primary: mainColor)));
             },
           ),
         ],
