@@ -33,6 +33,7 @@ dependencies:
   app_settings :
   flutter_colorpicker :
   gap:
+  sticky_grouped_list :
   innerlibs:
     path: ../innerlibs_dart
 

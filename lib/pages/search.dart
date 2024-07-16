@@ -182,6 +182,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
           var catApps = filteredAppsByCategory[query] ?? [];
           var items = r.$1;
           var whats = r.$2;
+
           return ListView(children: [
             if (catApps.isNotEmpty)
               for (var app in catApps)

@@ -17,18 +17,21 @@ set gridColumns(int value) => prefs.write('gridColumns', value);
 Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => (prefs.read<List<string>>('recentSearches') ?? <string>[]).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
+List<string> get recentSearches => [...prefs.read('recentSearches')].map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
 set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
 
-List<string> get hiddenApps => prefs.read<List<string>>('hiddenApps') ?? <string>[];
+List<string> get hiddenApps => [...prefs.read('hiddenApps')];
 set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFlat());
 
-List<string> get dockedApps => prefs.read<List<string>>('dockedApps') ?? <string>[];
+List<string> get dockedApps => [...prefs.read('dockedApps')];
 set dockedApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
 
 List<ApplicationWithIcon> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).toList();
 
-List<string> getCategoriesOf(string packageName) => <string>[...(prefs.read<strings>('categories::$packageName') ?? []), apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
+List<string> getCategoriesOf(string packageName) => <string>[
+      ...([...prefs.read('categories::$packageName')]),
+      apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""
+    ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
 setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories.distinctFlat());
 addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
 removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
