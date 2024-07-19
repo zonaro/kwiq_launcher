@@ -1,38 +1,38 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
 import 'main_app.dart';
 
 const tokens = [':', '@', '#', '>'];
 
-late GetStorage prefs;
+late SharedPreferences prefs;
 
-int get gridColumns => prefs.read('gridColumns') ?? 4;
-set gridColumns(int value) => prefs.write('gridColumns', value);
+int get gridColumns => prefs.getInt('gridColumns') ?? 4;
+set gridColumns(int value) => prefs.setInt('gridColumns', value);
 
-Color get mainColor => prefs.read<string>('mainColor')?.asColor ?? SystemTheme.fallbackColor;
-set mainColor(Color value) => prefs.write('mainColor', value.hexadecimal);
+Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fallbackColor;
+set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => [...prefs.read('recentSearches')].map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList();
-set recentSearches(List<String> value) => prefs.write('recentSearches', value.distinctFlat());
+List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList() ?? [];
+set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat());
 
-List<string> get hiddenApps => [...prefs.read('hiddenApps')];
-set hiddenApps(List<String> value) => prefs.write('hiddenApps', value.distinctFlat());
+List<string> get hiddenApps => prefs.getStringList('hiddenApps') ?? [];
+set hiddenApps(List<String> value) => prefs.setStringList('hiddenApps', value.distinctFlat());
 
-List<string> get dockedApps => [...prefs.read('dockedApps')];
-set dockedApps(List<string> value) => prefs.write('dockedApps', value.distinctFlat());
+List<string> get dockedApps => prefs.getStringList('dockedApps') ?? [];
+set dockedApps(List<string> value) => prefs.setStringList('dockedApps', value.distinctFlat());
 
-List<ApplicationWithIcon> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).toList();
+Iterable<ApplicationWithIcon> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).orderBy((x) => x.appName);
 
 List<string> getCategoriesOf(string packageName) => <string>[
-      ...([...prefs.read('categories::$packageName')]),
+      ...([...(prefs.getStringList('categories::$packageName') ?? [])]),
       apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""
     ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
-setCategoriesOf(string packageName, strings categories) => prefs.write('categories::$packageName', categories.distinctFlat());
+setCategoriesOf(string packageName, strings categories) => prefs.setStringList('categories::$packageName', categories.distinctFlat());
 addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
 removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
 
@@ -116,14 +116,15 @@ IconData categoryIcon(String category) {
     "local": Icons.map,
     "maps": Icons.map,
     "work": Icons.work,
+    "utilities": Icons.settings,
   };
   return category.getUniqueWords.whereValid.map((x) => categoryIcons[x.toLowerCase()]).mostFrequent ?? Icons.category;
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
-  prefs = GetStorage();
+
+  prefs = await SharedPreferences.getInstance();
   SystemTheme.fallbackColor = "#f6373f".asColor;
 
   runApp(const MainApp());

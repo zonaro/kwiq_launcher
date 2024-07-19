@@ -47,6 +47,7 @@ class MyAppMenuScreen extends StatelessWidget {
                   } else {
                     dockedApps = [...dockedApps, app.packageName];
                   }
+                  
                 },
                 child: Text(dockedApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
               ),

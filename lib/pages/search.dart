@@ -20,9 +20,26 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
   MyAppSearchDelegate([this.preQuery = '']);
 
+  TextInputType inputType = TextInputType.text;
+
+  @override
+  TextInputType? get keyboardType => inputType;
+
   @override
   List<Widget> buildActions(BuildContext context) {
-    return [];
+    return [
+      IconButton(
+        icon: Icon(inputType == TextInputType.number ? Icons.abc : Icons.numbers),
+        onPressed: () {
+          // Toggle between full keyboard and numeric keyboard
+          if (keyboardType == TextInputType.text) {
+            inputType = TextInputType.number;
+          } else {
+            inputType = TextInputType.text;
+          }
+        },
+      )
+    ];
   }
 
   @override
@@ -232,6 +249,26 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                 onTap: bingSearch,
               ),
               ListTile(
+                leading: const Icon(Icons.search),
+                title: Text('YouTube Search for "$query"'),
+                onTap: youtubeSearch,
+              ),
+              ListTile(
+                leading: const Icon(Icons.store),
+                title: Text('Play Store Search for "$query"'),
+                onTap: playStoreSearch,
+              ),
+              ListTile(
+                leading: const Icon(Icons.search),
+                title: Text('Spotify Search for "$query"'),
+                onTap: spotifySearch,
+              ),
+              ListTile(
+                leading: const Icon(Icons.search),
+                title: Text('YouTube Music Search for "$query"'),
+                onTap: youtubeMusicSearch,
+              ),
+              ListTile(
                 leading: const Icon(Icons.map),
                 title: Text('Maps Search for "$query"'),
                 onTap: mapSearch,
@@ -294,6 +331,14 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
   void googleSearch() => launchUrl(Uri.http('www.google.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
 
   void bingSearch() => launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+
+  void youtubeSearch() => launchUrl(Uri.http('www.youtube.com', '/results', {'search_query': query}), mode: LaunchMode.externalApplication);
+
+  void playStoreSearch() => launchUrl(Uri.http('play.google.com', '/store/search', {'q': query}), mode: LaunchMode.externalApplication);
+
+  void spotifySearch() => launchUrl(Uri.http('open.spotify.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+
+  void youtubeMusicSearch() => launchUrl(Uri.http('music.youtube.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
 
   void callNumber() => launchUrlString('tel: $query');
 

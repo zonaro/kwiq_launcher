@@ -5,6 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:restart_app/restart_app.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -122,6 +123,7 @@ class _PermissionItemState extends State<PermissionItem> {
           var v = await widget.permission.request();
           // Handle permission status here
           Get.reloadAll(force: true);
+          Restart.restartApp();
         },
       ),
     );

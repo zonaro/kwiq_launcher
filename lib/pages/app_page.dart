@@ -3,6 +3,7 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
+import 'package:gap/gap.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
@@ -33,30 +34,31 @@ class _AppPageState extends State<AppPage> {
           await showSearch(context: context, delegate: MyAppSearchDelegate());
           setState(() {});
         },
-        child: gridColumns > 1 ? appGrid() : appList(),
+        child: Column(
+          children: [
+            Expanded(child: gridColumns > 1 ? appGrid() : appList()),
+            Gap(context.height * .12),
+          ],
+        ),
       ),
     );
   }
 
-  Widget appGrid() => SizedBox(
-        height: context.height,
-        width: context.width,
-        child: GridView.count(
-          crossAxisCount: gridColumns,
-          shrinkWrap: true,
-          children: [
-            for (var c in starredContacts)
-              ContactTile(
-                contact: c,
-                gridColumns: gridColumns,
-              ),
-            for (var application in homeApps)
-              AppTile(
-                app: application,
-                gridColumns: gridColumns,
-              ),
-          ],
-        ),
+  Widget appGrid() => GridView.count(
+        crossAxisCount: gridColumns,
+        shrinkWrap: true,
+        children: [
+          for (var c in starredContacts)
+            ContactTile(
+              contact: c,
+              gridColumns: gridColumns,
+            ),
+          for (var application in homeApps)
+            AppTile(
+              app: application,
+              gridColumns: gridColumns,
+            ),
+        ],
       );
 
   string groupByMode(dynamic e, string mode) {
@@ -93,26 +95,19 @@ class _AppPageState extends State<AppPage> {
         order: StickyGroupedListOrder.ASC,
       );
 
-  Widget appList() => SizedBox(
-        height: context.height,
-        width: context.width,
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            for (var c in starredContacts)
-              ContactTile(
-                contact: c,
-                gridColumns: gridColumns,
-              ),
-            for (var application in homeApps)
-              AppTile(
-                app: application,
-                gridColumns: 1,
-              ),
-            SizedBox(
-              height: context.height * .12,
+  Widget appList() => ListView(
+        shrinkWrap: true,
+        children: [
+          for (var c in starredContacts)
+            ContactTile(
+              contact: c,
+              gridColumns: gridColumns,
             ),
-          ],
-        ),
+          for (var application in homeApps)
+            AppTile(
+              app: application,
+              gridColumns: 1,
+            ),
+        ],
       );
 }

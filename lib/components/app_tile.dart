@@ -29,6 +29,7 @@ class _AppTileState extends State<AppTile> {
       onDoubleTap: () => widget.app.openSettingsScreen(),
       onLongPress: () async {
         await context.push(MyAppMenuScreen(packageName: widget.app.packageName));
+        setState(() {});
       },
       child: Builder(builder: (context) {
         if (widget.gridColumns > 1) {

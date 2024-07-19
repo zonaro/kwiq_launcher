@@ -98,8 +98,8 @@ void showColorPicker(BuildContext context) {
             child: context.materialLocalizations.okButtonLabel.asText(),
             onPressed: () {
               mainColor = selectedColor;
-
               Get.changeTheme(ThemeData.from(colorScheme: Get.isDarkMode ? ColorScheme.dark(primary: mainColor) : ColorScheme.light(primary: mainColor)));
+              context.pop();
             },
           ),
         ],
