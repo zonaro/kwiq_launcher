@@ -3,7 +3,6 @@
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
-import 'package:gap/gap.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
@@ -30,7 +29,7 @@ class _AppPageState extends State<AppPage> {
     return Scaffold(
       body: PopScope(
         canPop: false,
-        onPopInvoked: (p) async {
+        onPopInvokedWithResult: (p, r) async {
           await showSearch(context: context, delegate: MyAppSearchDelegate());
           setState(() {});
         },

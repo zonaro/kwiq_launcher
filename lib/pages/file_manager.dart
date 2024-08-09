@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:file_manager/file_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/constants.dart';
 import 'package:kwiq_launcher/components/file_controller.dart';
@@ -39,7 +38,7 @@ class _FilePageState extends State<FilePage> {
     return ControlBackButton(
       controller: fileController.controller,
       child: PopScope(
-        onPopInvoked: (d) async {
+        onPopInvokedWithResult: (d, r) async {
           if (await fileController.controller.isRootDirectory()) {
             context.pop();
           }

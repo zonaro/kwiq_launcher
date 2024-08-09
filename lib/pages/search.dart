@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:get/get.dart' hide GetStringUtils;
 import 'package:innerlibs/file_extensions.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
@@ -64,7 +63,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
       return filteredApps
           .search(
-            searchTerm: query.removeFirstEqual(":"),
+            searchTerms: query.removeFirstEqual(":"),
             searchOn: (app) => [app.appName, app.packageName, app.category.name, ...getCategoriesOf(app.packageName)],
             levenshteinDistance: 2,
             allIfEmpty: true,
@@ -93,7 +92,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
 
       return contacts
           .search(
-            searchTerm: query.removeFirstEqual("@"),
+            searchTerms: query.removeFirstEqual("@"),
             searchOn: (contact) => [
               contact.name.first,
               contact.name.last,
@@ -172,7 +171,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
       consoleLog('Error: $e');
       return [];
     }
-    return files.search(searchTerm: query, searchOn: (file) => [file.fileName ?? file.fileNameWithoutExtension ?? file.path], levenshteinDistance: 2).toList();
+    return files.search(searchTerms: query, searchOn: (file) => [file.name , file.fileNameWithoutExtension , file.path], levenshteinDistance: 2).toList();
   }
 
   @override
@@ -291,7 +290,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                   ContactTile(contact: suggestion, gridColumns: 1)
                 else if (suggestion is File)
                   ListTile(
-                      title: Text(suggestion.fileName ?? suggestion.fileNameWithoutExtension ?? suggestion.path),
+                      title: Text(suggestion.name | suggestion.fileNameWithoutExtension | suggestion.path),
                       leading: const Icon(Icons.file_copy),
                       onTap: () => OpenFile.open(suggestion.path),
                       onLongPress: () {
@@ -319,7 +318,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                     },
                   )
                 else
-                  suggestion.forceWidget() ?? const SizedBox.shrink(),
+                  forceWidget(suggestion) ?? nil,
           ]);
         },
       );

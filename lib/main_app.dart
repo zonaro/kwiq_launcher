@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart' hide ContextExtensionss;
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/desktop_home.dart';

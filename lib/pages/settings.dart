@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:get/get.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
