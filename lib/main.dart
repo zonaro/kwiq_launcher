@@ -47,6 +47,8 @@ List<Contact> contacts = [];
 
 List<Contact> get starredContacts => contacts.where((contact) => contact.isStarred).toList();
 
+bool hasWhatsapp = false;
+
 Future<List<Contact>> loadContacts() async {
   await FlutterContacts.requestPermission();
 

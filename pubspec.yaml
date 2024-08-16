@@ -35,6 +35,7 @@ dependencies:
   gap:
   sticky_grouped_list :
   restart_app :
+  icons_plus :
   innerlibs:
     path: ../innerlibs_dart
 
