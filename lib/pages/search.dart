@@ -55,7 +55,7 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
     );
   }
 
-  Future<List<Application>> get searchApps async {
+  Future<List<ApplicationWithIcon>> get searchApps async {
     try {
       if (apps.isEmpty) {
         await loadApps();
@@ -279,6 +279,25 @@ class MyAppSearchDelegate extends SearchDelegate<String> {
                 app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
                 gridColumns: 1,
               ),
+            if (catApps.isEmpty)
+            ...[
+               FutureAwaiter(
+                future:() async => await searchApps,
+               builder: (apps) {
+                  return  ListView(
+                    children: [
+                for (var app in apps)
+                      AppTile(
+                      app: app,
+                      gridColumns: 1,
+                    ),
+                  ],
+                  );
+               }),
+
+            ]
+
+
             if (catApps.isEmpty)
               for (var suggestion in items)
                 if (suggestion is ApplicationWithIcon)
