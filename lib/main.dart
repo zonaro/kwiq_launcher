@@ -1,7 +1,8 @@
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 
@@ -17,7 +18,7 @@ set gridColumns(int value) => prefs.setInt('gridColumns', value);
 Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fallbackColor;
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).toList() ?? [];
+List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.name))).toList() ?? [];
 set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat());
 
 List<string> get hiddenApps => prefs.getStringList('hiddenApps') ?? [];
@@ -26,20 +27,19 @@ set hiddenApps(List<String> value) => prefs.setStringList('hiddenApps', value.di
 List<string> get dockedApps => prefs.getStringList('dockedApps') ?? [];
 set dockedApps(List<string> value) => prefs.setStringList('dockedApps', value.distinctFlat());
 
-Iterable<ApplicationWithIcon> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).orderBy((x) => x.appName);
+Iterable<AppInfo> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).orderBy((x) => x.name);
 
 List<string> getCategoriesOf(string packageName) => <string>[
       ...([...(prefs.getStringList('categories::$packageName') ?? [])]),
-      apps.where((app) => app.packageName == packageName).firstOrNull?.category.name ?? ""
     ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
 setCategoriesOf(string packageName, strings categories) => prefs.setStringList('categories::$packageName', categories.distinctFlat());
 addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
 removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
 
-List<ApplicationWithIcon> apps = [];
+List<AppInfo> apps = [];
 
-Map<string, List<ApplicationWithIcon>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
-List<ApplicationWithIcon> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
+Map<string, List<AppInfo>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
+List<AppInfo> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.name).toList();
 
 strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
 
@@ -64,13 +64,8 @@ Future<List<Contact>> loadContacts() async {
   return contacts;
 }
 
-Future<List<ApplicationWithIcon>> loadApps() async {
-  var a = await DeviceApps.getInstalledApplications(
-    includeAppIcons: true,
-    includeSystemApps: true,
-    onlyAppsWithLaunchIntent: true,
-  );
-  apps = [...a.map((x) => x as ApplicationWithIcon)];
+Future<List<AppInfo>> loadApps() async {
+  apps = (await InstalledApps.getInstalledApps(false, true));
   return apps;
 }
 
@@ -128,6 +123,9 @@ void main() async {
 
   prefs = await SharedPreferences.getInstance();
   SystemTheme.fallbackColor = "#f6373f".asColor;
+
+  await loadApps();
+  await loadContacts();
 
   runApp(const MainApp());
 }

@@ -8,9 +8,8 @@ environment:
 
 dependencies:
   flutter:
-    sdk: flutter
-  device_info:
-  device_apps:
+    sdk: flutter   
+  installed_apps: 
   path_provider:
   dashboard:
   path:
@@ -29,7 +28,6 @@ dependencies:
   flutter_storage_info:
   percent_indicator:
   sizer:
-  light_sensor:
   app_settings :
   flutter_colorpicker :
   gap:

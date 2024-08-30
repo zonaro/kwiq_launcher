@@ -1,12 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:installed_apps/app_info.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
-import 'package:kwiq_launcher/pages/search.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 
 import '../components/app_tile.dart';
@@ -29,10 +28,7 @@ class _AppPageState extends State<AppPage> {
     return Scaffold(
       body: PopScope(
         canPop: false,
-        onPopInvokedWithResult: (p, r) async {
-          await showSearch(context: context, delegate: MyAppSearchDelegate());
-          setState(() {});
-        },
+        onPopInvokedWithResult: (p, r) async {},
         child: Column(
           children: [
             Expanded(child: gridColumns > 1 ? appGrid() : appList()),
@@ -62,10 +58,10 @@ class _AppPageState extends State<AppPage> {
 
   string groupByMode(dynamic e, string mode) {
     if (mode == 'alpha') {
-      return e is Contact ? (e).displayName.first() : (e as ApplicationWithIcon).appName.first();
+      return e is Contact ? (e).displayName.first() : (e as AppInfo).name.first();
     }
     if (mode == 'category') {
-      return e is Contact ? "Contacts" : getCategoriesOf((e as ApplicationWithIcon).packageName).firstOrNull ?? "Undefined";
+      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo).packageName).firstOrNull ?? "Undefined";
     }
 
     return "All";

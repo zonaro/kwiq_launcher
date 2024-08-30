@@ -169,30 +169,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
-  device_apps:
-    dependency: "direct main"
-    description:
-      name: device_apps
-      sha256: e84dc74d55749993fd671148cc0bd53096e1be0c268fc364285511b1d8a4c19b
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.0"
-  device_info:
-    dependency: "direct main"
-    description:
-      name: device_info
-      sha256: f4a8156cb7b7480d969cb734907d18b333c8f0bc0b1ad0b342cdcecf30d62c48
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.3"
-  device_info_platform_interface:
-    dependency: transitive
-    description:
-      name: device_info_platform_interface
-      sha256: b148e0bf9640145d09a4f8dea96614076f889e7f7f8b5ecab1c7e5c2dbc73c1b
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.1"
   download:
     dependency: transitive
     description:
@@ -407,6 +383,14 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  installed_apps:
+    dependency: "direct main"
+    description:
+      name: installed_apps
+      sha256: b4db1c5a74fbedb2d782f734878e84b156673b332f45a4db71048df5d565f13d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.5.0"
   intl:
     dependency: "direct main"
     description:
@@ -447,14 +431,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
-  light_sensor:
-    dependency: "direct main"
-    description:
-      name: light_sensor
-      sha256: "669c71e5f4484a237f1f749c1b602b72d3c8b54977d7d0200d189356b32ec96e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.0"
   lints:
     dependency: transitive
     description:
@@ -667,10 +643,10 @@ packages:
     dependency: transitive
     description:
       name: permission_handler_android
-      sha256: "2e2a64834daafdde3aa7a0d9a6b90c97fc6229853ac18c2271a9d055631570c1"
+      sha256: "76e4ab092c1b240d31177bb64d2b0bea43f43d0e23541ec866151b9f7b2490fa"
       url: "https://pub.dev"
     source: hosted
-    version: "12.0.11"
+    version: "12.0.12"
   permission_handler_apple:
     dependency: transitive
     description:

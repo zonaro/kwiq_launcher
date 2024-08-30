@@ -1,10 +1,10 @@
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:installed_apps/app_info.dart';
 import 'package:kwiq_launcher/main.dart';
 
 class CategoriesPage extends StatefulWidget {
-  final ApplicationWithIcon app;
+  final AppInfo app;
 
   const CategoriesPage({super.key, required this.app});
 
@@ -23,7 +23,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
         children: [
           for (var cat in categories)
             CheckboxListTile(
-              enabled: !cat.flatEqual(widget.app.category.name),
               title: Text(cat.toTitleCase),
               value: getCategoriesOf(widget.app.packageName).contains(cat),
               onChanged: (bool? value) {

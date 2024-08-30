@@ -1,7 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:installed_apps/app_info.dart';
+import 'package:installed_apps/installed_apps.dart';
 import 'package:kwiq_launcher/components/app_menu.dart';
 import 'package:kwiq_launcher/main.dart';
 
@@ -13,7 +14,7 @@ class AppTile extends StatefulWidget {
     this.showLabel = true,
   });
 
-  final ApplicationWithIcon app;
+  final AppInfo app;
   final int gridColumns;
   final bool showLabel;
 
@@ -25,8 +26,8 @@ class _AppTileState extends State<AppTile> {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () => widget.app.openApp(),
-      onDoubleTap: () => widget.app.openSettingsScreen(),
+      onTap: () => InstalledApps.startApp(widget.app.packageName),
+      onDoubleTap: () => InstalledApps.openSettings(widget.app.packageName),
       onLongPress: () async {
         await context.push(MyAppMenuScreen(packageName: widget.app.packageName));
         setState(() {});
@@ -34,13 +35,14 @@ class _AppTileState extends State<AppTile> {
       child: Builder(builder: (context) {
         if (widget.gridColumns > 1) {
           var children = [
-            CircleAvatar(
-              backgroundImage: MemoryImage(widget.app.icon),
-            ),
+            if (widget.app.icon != null)
+              CircleAvatar(
+                backgroundImage: MemoryImage(widget.app.icon!),
+              ),
             if (widget.showLabel) ...[
               const SizedBox(height: 8),
               AutoSizeText(
-                widget.app.appName,
+                widget.app.name,
                 textAlign: TextAlign.center,
               ),
             ]
@@ -53,12 +55,14 @@ class _AppTileState extends State<AppTile> {
           );
         } else {
           return ListTile(
-            leading: CircleAvatar(
-              backgroundImage: MemoryImage(widget.app.icon),
-            ),
-            title: Text(widget.app.appName),
+            leading: widget.app.icon != null
+                ? CircleAvatar(
+                    backgroundImage: MemoryImage(widget.app.icon!),
+                  )
+                : null,
+            title: Text(widget.app.name),
             subtitle: Text(widget.app.packageName),
-            trailing: Icon(categoryIcon(widget.app.category.name)),
+            trailing: Icon(categoryIcon(getCategoriesOf(widget.app.packageName).firstOrNull ?? "")),
           );
         }
       }),
