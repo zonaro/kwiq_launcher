@@ -102,10 +102,10 @@ class _PermissionItemState extends State<PermissionItem> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBool(
-      future: widget.permission.isRestricted,
-      trueWidget: const SizedBox.shrink(),
-      falseWidget: ListTile(
+    return FutureAwaiter<bool>(
+      future: () => widget.permission.isRestricted,
+      builder: (_) => const SizedBox.shrink(),
+      emptyChild: ListTile(
         title: Text(widget.title),
         subtitle: Text(widget.description),
         leading: Icon(widget.icon),

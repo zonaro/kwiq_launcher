@@ -20,7 +20,9 @@ PageTabController? indexController;
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    indexController ??= PageTabController(items: [
+ 
+
+    return PopScope(canPop: false, child: PageTabScaffold(indexController: indexController!,items: [
       PageEntry(
         showAppBar: false,
         icon: Icons.home,
@@ -46,8 +48,6 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-    ]);
-
-    return PopScope(canPop: false, child: PageTabScaffold(indexController: indexController!));
+    ],));
   }
 }
