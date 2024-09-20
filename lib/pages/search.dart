@@ -266,7 +266,7 @@ class _SearchPageState extends State<SearchPage> {
               ]
             ]),
           ),
-          CampoTexto(
+          StringField(
             label: 'Search',
             autofocus: true,
             controller: searchController,
