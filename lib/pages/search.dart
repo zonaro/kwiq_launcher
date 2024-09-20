@@ -269,8 +269,8 @@ class _SearchPageState extends State<SearchPage> {
           StringField(
             label: 'Search',
             autofocus: true,
-            controller: searchController,
-            onChanged: (value) {
+            onChanged: (value, _) {
+              searchController.text = value ?? "";
               query = value ?? "";
               setState(() {});
             },

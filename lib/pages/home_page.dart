@@ -20,34 +20,37 @@ PageTabController? indexController;
 class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
- 
-
-    return PopScope(canPop: false, child: PageTabScaffold(indexController: indexController!,items: [
-      PageEntry(
-        showAppBar: false,
-        icon: Icons.home,
-        title: 'Home',
-        tabs: [
-          TabEntry(
-            icon: Icons.star,
-            child: const SearchPage(),
-          ),
-          TabEntry(
-            icon: Icons.file_copy,
-            title: 'Files',
-            child: const FilePage(),
-          )
-        ],
-      ),
-      PageEntry(
-        icon: Icons.settings,
-        title: 'Settings',
-        tabs: [
-          TabEntry(
-            child: const SettingsScreen(),
-          )
-        ],
-      ),
-    ],));
+    return PopScope(
+        canPop: false,
+        child: PageTabScaffold(
+          indexController: indexController!,
+          items: [
+            PageEntry(
+              showAppBar: false,
+              icon: Icons.home,
+              title: 'Home',
+              tabs: [
+                TabEntry(
+                  icon: Icons.star,
+                  builder: (_) => const SearchPage(),
+                ),
+                TabEntry(
+                  icon: Icons.file_copy,
+                  title: 'Files',
+                  builder: (_) => const FilePage(),
+                )
+              ],
+            ),
+            PageEntry(
+              icon: Icons.settings,
+              title: 'Settings',
+              tabs: [
+                TabEntry(
+                  builder: (_) => const SettingsScreen(),
+                )
+              ],
+            ),
+          ],
+        ));
   }
 }

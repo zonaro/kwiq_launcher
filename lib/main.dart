@@ -19,20 +19,20 @@ Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.fall
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
 List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.name))).toList() ?? [];
-set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat());
+set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat().toList());
 
 List<string> get hiddenApps => prefs.getStringList('hiddenApps') ?? [];
-set hiddenApps(List<String> value) => prefs.setStringList('hiddenApps', value.distinctFlat());
+set hiddenApps(List<String> value) => prefs.setStringList('hiddenApps', value.distinctFlat().toList());
 
 List<string> get dockedApps => prefs.getStringList('dockedApps') ?? [];
-set dockedApps(List<string> value) => prefs.setStringList('dockedApps', value.distinctFlat());
+set dockedApps(List<string> value) => prefs.setStringList('dockedApps', value.distinctFlat().toList());
 
 Iterable<AppInfo> get homeApps => apps.where((app) => dockedApps.flatContains(app.packageName)).orderBy((x) => x.name);
 
 List<string> getCategoriesOf(string packageName) => <string>[
       ...([...(prefs.getStringList('categories::$packageName') ?? [])]),
     ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase).toList();
-setCategoriesOf(string packageName, strings categories) => prefs.setStringList('categories::$packageName', categories.distinctFlat());
+setCategoriesOf(string packageName, StringList categories) => prefs.setStringList('categories::$packageName', categories.distinctFlat().toList());
 addCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName) + [category]);
 removeCategory(string packageName, string category) => setCategoriesOf(packageName, getCategoriesOf(packageName).where((e) => e.flatEqual(category) == false).toList());
 
@@ -41,7 +41,7 @@ List<AppInfo> apps = [];
 Map<string, List<AppInfo>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app.packageName).contains(category)).toList())));
 List<AppInfo> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.name).toList();
 
-strings get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
+StringList get categories => apps.selectMany((app, i) => getCategoriesOf(app.packageName)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
 
 List<Contact> contacts = [];
 
