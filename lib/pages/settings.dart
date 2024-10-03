@@ -16,7 +16,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
       body: ListView(
         children: [
           ListTile(
@@ -29,6 +31,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: const Text('Main Color'),
             onTap: () {
               showColorPicker(context);
+              Get.forceAppUpdate();
             },
           ),
           ListTile(
@@ -42,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   gridColumns = newValue.floor();
                 });
+                Get.forceAppUpdate();
               },
             ),
             trailing: Text('$gridColumns'),

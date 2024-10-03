@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:kwiq_launcher/pages/file_manager.dart';
+import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/search.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 
@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-PageTabController? indexController;
+PageTabController indexController = PageTabController();
 
 class _HomePageState extends State<HomePage> {
   @override
@@ -23,7 +23,10 @@ class _HomePageState extends State<HomePage> {
     return PopScope(
         canPop: false,
         child: PageTabScaffold(
-          indexController: indexController!,
+          indexController: indexController,
+          iconColor: context.onSurfaceColor,
+          activeIconColor: mainColor,
+          titleColor: mainColor,
           items: [
             PageEntry(
               showAppBar: false,
@@ -31,14 +34,8 @@ class _HomePageState extends State<HomePage> {
               title: 'Home',
               tabs: [
                 TabEntry(
-                  icon: Icons.star,
                   builder: (_) => const SearchPage(),
                 ),
-                TabEntry(
-                  icon: Icons.file_copy,
-                  title: 'Files',
-                  builder: (_) => const FilePage(),
-                )
               ],
             ),
             PageEntry(

@@ -29,7 +29,7 @@ class _ContactTileState extends State<ContactTile> {
         if (widget.contact.phones.length != 1) {
           FlutterContacts.openExternalEdit(widget.contact.id);
         } else {
-          launchUrlString('tel: ${widget.contact.phones.first.number}');
+          launchUrlString('tel:${widget.contact.phones.first.number}');
         }
       },
       onLongPress: () async {
@@ -39,6 +39,7 @@ class _ContactTileState extends State<ContactTile> {
       child: Builder(builder: (context) {
         var pic = widget.contact.photo ?? widget.contact.thumbnail;
         var namePart = widget.contact.displayName.pascalSplitString.getWords.map((x) => x.first(1)).take(3).join("").toUpperCase();
+        var phone = widget.contact.phones.firstWhereOrNull((x) => x.isPrimary)?.number ?? widget.contact.phones.firstOrDefault()?.number ?? widget.contact.emails.firstWhereOrNull((x) => x.isPrimary)?.address ?? widget.contact.emails.firstOrDefault()?.address;
         if (widget.gridColumns > 1) {
           var children = [
             CircleAvatar(
@@ -46,7 +47,6 @@ class _ContactTileState extends State<ContactTile> {
               child: pic == null ? AutoSizeText(namePart) : null,
             ),
             if (widget.showLabel) ...[
-              const SizedBox(height: 8),
               AutoSizeText(
                 widget.contact.displayName,
                 textAlign: TextAlign.center,
@@ -55,7 +55,7 @@ class _ContactTileState extends State<ContactTile> {
           ];
           return GridTile(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: children,
             ),
           );
@@ -66,6 +66,7 @@ class _ContactTileState extends State<ContactTile> {
               child: pic == null ? AutoSizeText(namePart) : null,
             ),
             title: Text(widget.contact.displayName),
+            subtitle: phone?.asText(),
           );
         }
       }),

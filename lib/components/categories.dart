@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:installed_apps/app_info.dart';
 import 'package:kwiq_launcher/main.dart';
 
 class CategoriesPage extends StatefulWidget {
@@ -24,15 +23,16 @@ class _CategoriesPageState extends State<CategoriesPage> {
           for (var cat in categories)
             CheckboxListTile(
               title: Text(cat.toTitleCase),
-              value: getCategoriesOf(widget.app.packageName).contains(cat),
+              enabled: !widget.app.category.name.flatEqual(cat),
+              value: getCategoriesOf(widget.app).contains(cat),
               onChanged: (bool? value) {
                 if (value!) {
                   setState(() {
-                    addCategory(widget.app.packageName, cat);
+                    addCategory(widget.app, cat);
                   });
                 } else {
                   setState(() {
-                    removeCategory(widget.app.packageName, cat);
+                    removeCategory(widget.app, cat);
                   });
                 }
               },
@@ -44,7 +44,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           var category = await context.prompt(title: 'New Category');
           if (category.isNotBlank) {
             setState(() {
-              addCategory(widget.app.packageName, category!);
+              addCategory(widget.app, category!);
             });
           }
         },

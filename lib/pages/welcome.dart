@@ -118,7 +118,7 @@ class _PermissionItemState extends State<PermissionItem> {
           ),
         ),
         onTap: () async {
-          var v = await widget.permission.request();
+           await widget.permission.request();
           // Handle permission status here
           Get.reloadAll(force: true);
           Restart.restartApp();

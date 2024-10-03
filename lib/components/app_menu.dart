@@ -3,9 +3,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:installed_apps/installed_apps.dart';
 import 'package:kwiq_launcher/components/categories.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:new_device_apps/device_apps.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyAppMenuScreen extends StatelessWidget {
@@ -25,19 +25,17 @@ class MyAppMenuScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: FutureAwaiter(
-        future: () async => (await InstalledApps.getAppInfo(packageName)),
+        future: () async => (await DeviceApps.getApp(packageName, true) as AppInfo),
         builder: (app) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (app.icon != null) Image.memory(app.icon!, height: 100),
+              if (app.icon.isNotEmpty) Image.memory(app.icon, height: 100),
               const SizedBox(height: 16),
-              Text(app.name, style: const TextStyle(fontSize: 24)),
+              Text(app.appName, style: const TextStyle(fontSize: 24)),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: () {
-                  InstalledApps.startApp(app.packageName);
-                },
+                onPressed: () => app.openApp(),
                 child: const Text('Open App'),
               ),
               ElevatedButton(
@@ -47,13 +45,12 @@ class MyAppMenuScreen extends StatelessWidget {
                   } else {
                     dockedApps = [...dockedApps, app.packageName];
                   }
+                  Get.forceAppUpdate();
                 },
                 child: Text(dockedApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
               ),
               ElevatedButton(
-                onPressed: () {
-                  InstalledApps.openSettings(app.packageName);
-                },
+                onPressed: () => app.openSettingsScreen(),
                 child: const Text('App Settings'),
               ),
               ElevatedButton(
@@ -77,19 +74,15 @@ class MyAppMenuScreen extends StatelessWidget {
                 },
                 child: const Text('Set Categories'),
               ),
-              FutureAwaiter(
-                future: () async => await InstalledApps.isSystemApp(app.packageName),
-                builder: (b) => b ?? false
-                    ? ElevatedButton(
-                        onPressed: () async {
-                          if (await InstalledApps.uninstallApp(app.packageName) == true) {
-                            apps = apps.where((element) => element.packageName != app.packageName).toList();
-                          }
-                        },
-                        child: const Text('Uninstall App'),
-                      )
-                    : nil,
-              ),
+              if (!app.systemApp)
+                ElevatedButton(
+                  onPressed: () async {
+                    if (await DeviceApps.uninstallApp(app.packageName) == true) {
+                      apps = apps.where((element) => element.packageName != app.packageName).toList();
+                    }
+                  },
+                  child: const Text('Uninstall App'),
+                ),
             ],
           ),
         ),

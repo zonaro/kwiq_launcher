@@ -4,12 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:installed_apps/app_info.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
+import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
-import 'package:kwiq_launcher/pages/file_manager.dart';
-import 'package:kwiq_launcher/pages/home_page.dart';
+import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:open_file/open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -24,8 +23,9 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  string get query => searchController.text;
-  set query(string value) => searchController.text = value;
+  string get query => queryController.text;
+  set query(string value) => queryController.text = value;
+  TextEditingController queryController = TextEditingController();
 
   TextInputType inputType = TextInputType.text;
 
@@ -38,7 +38,7 @@ class _SearchPageState extends State<SearchPage> {
       return filteredApps
           .search(
             searchTerms: query.removeFirstEqual(":"),
-            searchOn: (app) => [app.name, app.packageName, ...getCategoriesOf(app.packageName)],
+            searchOn: (app) => [app.appName, app.packageName, ...getCategoriesOf(app)],
             levenshteinDistance: 2,
             allIfEmpty: true,
           )
@@ -85,10 +85,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   List<File> get searchFiles {
-    final dir = Directory(fileController.controller.getCurrentDirectory.path);
+    final dir = Directory('/storage/emulated/0/');
     List<File> files = [];
     try {
-      for (var file in dir.listSync(recursive: false).where((x) => x.path != '/storage/emulated/0/Android')) {
+      for (var file in dir.listSync(recursive: false).where((x) => x.path.startsWith('/storage/emulated/0/Android') == false)) {
         if (file is Directory) {
           files.addAll(file.listSync(recursive: true).whereType<File>());
         } else {
@@ -99,7 +99,11 @@ class _SearchPageState extends State<SearchPage> {
       consoleLog('Error: $e');
       return [];
     }
-    return files.search(searchTerms: query, searchOn: (file) => [file.name, file.fileNameWithoutExtension, file.path], levenshteinDistance: 2).toList();
+    return files.search(searchTerms: query.removeFirstEqual(">"), searchOn: (file) => [file.name, file.fileNameWithoutExtension, file.path], levenshteinDistance: 2).toList();
+  }
+
+  Future<Iterable<string>> searchSuggestions() async {
+    return (recentSearches + (await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""))).distinctFlat();
   }
 
   @override
@@ -110,119 +114,213 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  TextEditingController searchController = TextEditingController();
+  final filesData = AwaiterData<List<File>>();
+  final contactData = AwaiterData<List<Contact>>();
+  final appData = AwaiterData<List<AppInfo>>();
+
+  final loc = Get.context!.innerLibsLocalizations;
+
+  bool isSearching = false;
 
   @override
   build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            flex: 10,
-            child: ListView(shrinkWrap: true, children: [
-              if (query.isBlank) ...suggestionTile(recentSearches),
-              if (query.isBlank) ...[
-                for (var app in homeApps)
-                  AppTile(
-                    app: app,
-                    gridColumns: 1,
-                  ),
+      appBar: AppBar(
+        title: isSearching
+            ? Autocomplete<string>(
+                onSelected: (value) {
+                  query = value;
+                  setState(() {});
+                  context.unfocus();
+                },
+                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                  queryController = controller;
+                  return TextFormField(
+                    key: ValueKey(inputType),
+                    autofocus: true,
+                    focusNode: focusNode,
+                    controller: controller,
+                    onChanged: (value) {
+                      // query = value;
+                      filesData.expired = true;
+                      contactData.expired = true;
+                      appData.expired = true;
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      border: const OutlineInputBorder(),
+                      label: loc.search.asText(),
+                      hintStyle: TextStyle(color: context.colorScheme.onSurface.makeDarker(.8)),
+                      hintText: recentSearches.lastOrNull ?? '${loc.search}...',
+                    ),
+                    keyboardType: inputType,
+                    textInputAction: TextInputAction.search,
+                  );
+                },
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  return searchSuggestions();
+                },
+              )
+            : const DigitalClock(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Get.to(() => const SettingsScreen());
+            },
+          ),
+        ],
+      ),
+      resizeToAvoidBottomInset: true,
+      floatingActionButton: SizedBox(
+        width: context.width,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (isSearching)
+              FloatingActionButton.small(
+                child: Icon((inputType == TextInputType.number ? Icons.numbers : Icons.abc)),
+                onPressed: () async {
+                  // Toggle between full keyboard and numeric keyboard
+                  if (inputType == TextInputType.url) {
+                    inputType = TextInputType.number;
+                  } else {
+                    inputType = TextInputType.url;
+                  }
+                  context.unfocus();
+                  await Get.forceAppUpdate();
+                  setState(() {});
+                },
+              ),
+            const Gap(10),
+            FloatingActionButton(
+              onPressed: () {
+                if (isSearching) {
+                  if (query.isNotBlank) {
+                    query = '';
+                  } else {
+                    context.unfocus();
+                    isSearching = false;
+                  }
+                } else {
+                  isSearching = true;
+                }
+                setState(() {});
+              },
+              child: Icon(isSearching ? (query.isNotBlank ? Icons.clear_all : Icons.close) : Icons.search),
+            ),
+          ],
+        ),
+      ),
+      body: query.isBlank
+          ? GridView(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: gridColumns,
+                // mainAxisExtent: 100,
+              ),
+              children: [
                 for (var contact in starredContacts)
                   ContactTile(
                     contact: contact,
-                    gridColumns: 1,
+                    gridColumns: gridColumns,
+                  ),
+                for (var app in homeApps)
+                  AppTile(
+                    app: app,
+                    gridColumns: gridColumns,
                   ),
               ],
-              if (apps.any((a) => a.packageName.flatEqual(query)))
-                AppTile(
-                  app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
-                  gridColumns: 1,
-                ),
-              if (query.isNotBlank && !query.startsWithAny(tokens)) ...[
-                if (query.isNumericOnly)
-                  ListTile(
-                    leading: const Icon(Icons.phone),
-                    title: Text('Call "$query"'),
-                    onTap: callNumber,
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                if (apps.any((a) => a.packageName.flatEqual(query)))
+                  AppTile(
+                    app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
+                    gridColumns: 1,
                   ),
-                if (query.isNumericOnly)
+                if (!query.startsWithAny(tokens)) ...[
+                  if (query.isPhoneNumber)
+                    ListTile(
+                      leading: const Icon(Icons.phone),
+                      title: Text(loc.calltoItem(query.quote)),
+                      onTap: callNumber,
+                    ),
+                  if (query.isPhoneNumber)
+                    ListTile(
+                      leading: const Icon(Icons.message),
+                      title: Text(loc.sendItemToItem("SMS", query.quote)),
+                      onTap: smsTo,
+                    ),
+                  if (query.isPhoneNumber && hasWhatsapp)
+                    ListTile(
+                      leading: Brand(Brands.whatsapp),
+                      title: Text(loc.sendItemToItem("WhatsApp", query.quote)),
+                      onTap: whatsAppTo,
+                    ),
+                  if (query.isURL)
+                    ListTile(
+                      leading: const Icon(Icons.link),
+                      title: Text('${loc.open} URL "$query"'),
+                      onTap: openUrl,
+                    ),
+                  if (query.isEmail)
+                    ListTile(
+                      leading: const Icon(Icons.email),
+                      title: Text('${loc.newItem("email")} ${loc.to} "$query"'),
+                      onTap: openMail,
+                    ),
                   ListTile(
-                    leading: const Icon(Icons.message),
-                    title: Text('New message to "$query"'),
-                    onTap: smsTo,
+                    leading: Brand(Brands.google),
+                    title: Text(loc.searchForIn(query.quote, "Google")),
+                    onTap: googleSearch,
                   ),
-                if ((Brasil.validarTelefone(query) || query.isNumericOnly) && hasWhatsapp)
                   ListTile(
-                    leading: Brand(Brands.whatsapp),
-                    title: Text('WhatsApp to "$query"'),
-                    onTap: whatsAppTo,
+                    leading: Brand(Brands.bing),
+                    title: Text(loc.searchForIn(query.quote, "Bing")),
+                    onTap: bingSearch,
                   ),
-                if (query.isURL)
                   ListTile(
-                    leading: const Icon(Icons.link),
-                    title: Text('Open URL "$query"'),
-                    onTap: openUrl,
+                    leading: Brand(Brands.youtube),
+                    title: Text(loc.searchForIn(query.quote, "YouTube")),
+                    onTap: youtubeSearch,
                   ),
-                if (query.isEmail)
                   ListTile(
-                    leading: const Icon(Icons.email),
-                    title: Text('New email to "$query"'),
-                    onTap: openMail,
+                    leading: Brand(Brands.youtube_music),
+                    title: Text(loc.searchForIn(query.quote, "YouTube Music")),
+                    onTap: youtubeMusicSearch,
                   ),
-                ListTile(
-                  leading: Brand(Brands.google),
-                  title: Text('Google Search for "$query"'),
-                  onTap: googleSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.bing),
-                  title: Text('Bing Search for "$query"'),
-                  onTap: bingSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.youtube),
-                  title: Text('YouTube Search for "$query"'),
-                  onTap: youtubeSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.youtube_music),
-                  title: Text('YouTube Music Search for "$query"'),
-                  onTap: youtubeMusicSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.spotify),
-                  title: Text('Spotify Search for "$query"'),
-                  onTap: spotifySearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.google_play),
-                  title: Text('Play Store Search for "$query"'),
-                  onTap: playStoreSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.google_maps),
-                  title: Text('Google Maps Search for "$query"'),
-                  onTap: mapSearch,
-                ),
-                ListTile(
-                  leading: Brand(Brands.instagram),
-                  title: Text('Open "/$query" profile on Instagram'),
-                  onTap: instagramOpen,
-                ),
-                const Divider(),
-                FutureAwaiter(
-                    future: () async => (await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? "")),
-                    loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: Get.context!.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("..."))),
-                    builder: (suggestions) {
-                      return ListView(shrinkWrap: true, children: [...suggestionTile(suggestions)]);
-                    }),
-                if (query.startsWith(":") || query.startsWithAny(tokens) == false)
+                  ListTile(
+                    leading: Brand(Brands.spotify),
+                    title: Text(loc.searchForIn(query.quote, "Spotify")),
+                    onTap: spotifySearch,
+                  ),
+                  ListTile(
+                    leading: Brand(Brands.google_play),
+                    title: Text(loc.searchForIn(query.quote, "Play Store")),
+                    onTap: playStoreSearch,
+                  ),
+                  ListTile(
+                    leading: Brand(Brands.google_maps),
+                    title: Text(loc.searchForIn(query.quote, "Google Maps")),
+                    onTap: mapSearch,
+                  ),
+                  ListTile(
+                    leading: Brand(Brands.instagram),
+                    title: Text('${loc.open} "instagram/${query.toSnakeCase}"'),
+                    onTap: instagramOpen,
+                  ),
+                  const Divider(),
+                ],
+                if (query.startsWith(":") || !query.startsWithAny(tokens))
                   FutureAwaiter(
+                      data: appData,
                       future: () async => await searchApps,
                       loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: Get.context!.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Apps..."))),
                       builder: (apps) {
                         return ListView(
-                          shrinkWrap: true,
+                          // shrinkWrap: true,
                           children: [
                             for (var app in apps)
                               AppTile(
@@ -232,90 +330,86 @@ class _SearchPageState extends State<SearchPage> {
                           ],
                         );
                       }),
-                if (query.startsWith("@") || query.startsWithAny(tokens) == false)
+                if (query.startsWith("#"))
+                  for (var cat in categories)
+                    ListTile(
+                      leading: Icon(categoryIcon(cat)),
+                      title: Text(cat),
+                      onTap: () {
+                        query = cat;
+                      },
+                    ),
+                if (query.startsWith("@") || !query.startsWithAny(tokens))
                   FutureAwaiter(
+                      data: contactData,
                       future: () async => await searchContacts,
-                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: Get.context!.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Contacts..."))),
+                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: context.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Contacts..."))),
                       builder: (contacts) {
                         return ListView(
                           shrinkWrap: true,
                           children: [for (var contact in contacts) ContactTile(contact: contact, gridColumns: 1)],
                         );
                       }),
-                if (query.startsWith(">") || query.startsWithAny(tokens) == false)
+                if (query.startsWith(">") || !query.startsWithAny(tokens))
                   FutureAwaiter(
+                      data: filesData,
                       future: () async => searchFiles,
-                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: Get.context!.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Files..."))),
+                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: context.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Files..."))),
                       builder: (files) {
                         return ListView(
                           shrinkWrap: true,
                           children: [
                             for (var file in files)
                               ListTile(
-                                  title: Text(file.name | file.fileNameWithoutExtension | file.path),
-                                  leading: const Icon(Icons.file_copy),
-                                  onTap: () => OpenFile.open(file.path),
-                                  onLongPress: () {
-                                    fileController.controller.openDirectory(file.parent);
-                                    pageController.animateToPage(1, duration: 1.seconds, curve: Curves.easeInOut);
-                                    Get.back();
-                                  })
+                                title: Text(file.name | file.fileNameWithoutExtension | file.path),
+                                leading: const Icon(Icons.file_copy),
+                                onTap: () => OpenFile.open(file.path),
+                              )
                           ],
                         );
                       }),
-              ]
-            ]),
-          ),
-          StringField(
-            label: 'Search',
-            autofocus: true,
-            onChanged: (value, _) {
-              searchController.text = value ?? "";
-              query = value ?? "";
-              setState(() {});
-            },
-            keyboardType: inputType,
-            icon: query.isBlank ? (inputType == TextInputType.number ? Icons.numbers : Icons.abc) : Icons.clear,
-            onIconTap: () {
-              if (query.isBlank) {
-                // Toggle between full keyboard and numeric keyboard
-                if (inputType == TextInputType.text) {
-                  inputType = TextInputType.number;
-                } else {
-                  inputType = TextInputType.text;
-                }
-              } else {
-                query = '';
-              }
-              setState(() {});
-            },
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 
-  void bingSearch() => launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  void bingSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
   void callNumber() => launchUrlString('tel: $query');
 
-  void googleSearch() => launchUrl(Uri.http('www.google.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  void googleSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('www.google.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
-  void instagramOpen() => launchUrl(Uri.http('www.instagram.com', '/$query'), mode: LaunchMode.externalApplication);
+  void instagramOpen() => launchUrl(Uri.http('www.instagram.com', '/${query.toSnakeCase}'), mode: LaunchMode.externalApplication);
 
-  void mapSearch() => launchUrl(Uri.https('www.google.com', '/maps/search/', {'q': query}), mode: LaunchMode.externalApplication);
+  void mapSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.https('www.google.com', '/maps/search/', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
-  void openMail() => launchUrlString('mailto: $query');
+  void openMail() => launchUrlString('mailto:$query');
 
   void openUrl() => launchUrlString(query);
 
-  void playStoreSearch() => launchUrl(Uri.http('play.google.com', '/store/search', {'q': query}), mode: LaunchMode.externalApplication);
+  void playStoreSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('play.google.com', '/store/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
-  void smsTo() => launchUrlString('sms: $query');
+  void smsTo() => launchUrlString('sms:$query');
 
-  void spotifySearch() => launchUrl(Uri.http('open.spotify.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  void spotifySearch() {
+    addRecentSearch(query);
 
-  Iterable<Widget> suggestionTile(List<String> suggestions) {
+    launchUrl(Uri.http('open.spotify.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
+
+  List<Widget> suggestionTiles(Iterable<String> suggestions) {
     return [
       for (var suggestion in suggestions)
         ListTile(
@@ -332,14 +426,22 @@ class _SearchPageState extends State<SearchPage> {
               : null,
           onTap: () {
             query = suggestion;
+            setState(() {});
+            Get.forceAppUpdate();
           },
         ),
     ];
   }
 
-  void whatsAppTo() => launchUrlString('whatsapp://send?phone= $query');
+  void whatsAppTo() => launchUrlString('whatsapp://send?phone=$query');
 
-  void youtubeMusicSearch() => launchUrl(Uri.http('music.youtube.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  void youtubeMusicSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('music.youtube.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
-  void youtubeSearch() => launchUrl(Uri.http('www.youtube.com', '/results', {'search_query': query}), mode: LaunchMode.externalApplication);
+  void youtubeSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('www.youtube.com', '/results', {'search_query': query}), mode: LaunchMode.externalApplication);
+  }
 }

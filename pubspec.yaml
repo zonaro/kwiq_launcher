@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter   
-  installed_apps: 
+  new_device_apps : 
   path_provider:
   dashboard:
   path:

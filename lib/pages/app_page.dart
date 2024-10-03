@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:installed_apps/app_info.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
@@ -58,10 +57,10 @@ class _AppPageState extends State<AppPage> {
 
   string groupByMode(dynamic e, string mode) {
     if (mode == 'alpha') {
-      return e is Contact ? (e).displayName.first() : (e as AppInfo).name.first();
+      return e is Contact ? (e).displayName.first() : (e as AppInfo).appName.first();
     }
     if (mode == 'category') {
-      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo).packageName).firstOrNull ?? "Undefined";
+      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo)).firstOrNull ?? "Undefined";
     }
 
     return "All";

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
-import 'package:installed_apps/installed_apps.dart';
+import 'package:new_device_apps/device_apps.dart';
 
 class DigitalClock extends StatefulWidget {
   const DigitalClock({super.key, this.textStyle, this.format = 'HH:mm:ss'});
@@ -31,11 +31,11 @@ class _DigitalClockState extends State<DigitalClock> {
   }
 
   void _openClock() async {
-    if (await InstalledApps.isAppInstalled('com.android.deskclock') == true) {
-      InstalledApps.startApp('com.android.deskclock');
+    if (await DeviceApps.isAppInstalled('com.android.deskclock') == true) {
+      DeviceApps.openApp('com.android.deskclock');
     } else {
-      if (await InstalledApps.isAppInstalled('com.google.android.deskclock') == true) {
-        InstalledApps.startApp('com.google.android.deskclock');
+      if (await DeviceApps.isAppInstalled('com.google.android.deskclock') == true) {
+        DeviceApps.openApp('com.google.android.deskclock');
       }
     }
   }
