@@ -31,10 +31,10 @@ class _DigitalClockState extends State<DigitalClock> {
   }
 
   void _openClock() async {
-    if (await DeviceApps.isAppInstalled('com.android.deskclock') == true) {
+    if (await DeviceApps.isAppInstalled('com.android.deskclock')) {
       DeviceApps.openApp('com.android.deskclock');
     } else {
-      if (await DeviceApps.isAppInstalled('com.google.android.deskclock') == true) {
+      if (await DeviceApps.isAppInstalled('com.google.android.deskclock')) {
         DeviceApps.openApp('com.google.android.deskclock');
       }
     }

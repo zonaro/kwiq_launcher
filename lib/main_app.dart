@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
-import 'package:kwiq_launcher/pages/search.dart';
+import 'package:kwiq_launcher/pages/home.dart';
 import 'package:new_device_apps/device_apps.dart';
 import 'package:sizer/sizer.dart';
 
@@ -21,7 +21,7 @@ class MainApp extends StatelessWidget {
           locale: Get.deviceLocale,
           localizationsDelegates: InnerLibsLocalizations.localizationsDelegates,
           supportedLocales: InnerLibsLocalizations.supportedLocales,
-          home: const SearchPage(),
+          home: const HomePage(),
         );
       });
 }

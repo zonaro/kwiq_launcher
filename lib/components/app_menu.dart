@@ -78,7 +78,7 @@ class MyAppMenuScreen extends StatelessWidget {
                 ElevatedButton(
                   onPressed: () async {
                     if (await DeviceApps.uninstallApp(app.packageName) == true) {
-                      apps = apps.where((element) => element.packageName != app.packageName).toList();
+                      apps.removeWhere((element) => element.packageName == app.packageName);
                     }
                   },
                   child: const Text('Uninstall App'),

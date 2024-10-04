@@ -15,16 +15,16 @@ import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-class SearchPage extends StatefulWidget {
+class HomePage extends StatefulWidget {
   final string query;
 
-  const SearchPage({super.key, this.query = ''});
+  const HomePage({super.key, this.query = ''});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _HomePageState extends State<HomePage> {
   string get query => queryController.text;
   set query(string value) => queryController.text = value;
   TextEditingController queryController = TextEditingController();
@@ -79,24 +79,30 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Iterable<File> get searchFiles {
-    final dir = Directory('/storage/emulated/0/');
-    Set<File> files = {};
-    for (var file in dir.listSync(recursive: false).where((x) => !x.path.startsWith('/storage/emulated/0/Android'))) {
-      try {
-        if (file is Directory) {
-          files.addAll(file.listSync(recursive: true).whereType<File>());
-        } else {
-          files.add(file as File);
-        }
-      } catch (e) {
-        consoleLog('Error: $e');
+    try {
+      if (files.isEmpty) {
+        loadFiles();
       }
+
+      return files
+          .search(
+            searchTerms: query.removeFirstEqual(">"),
+            searchOn: (file) => [
+              file.name,
+              file.lastModifiedSync().format(),
+              file.lastAccessedSync().format(),
+            ],
+            levenshteinDistance: 2,
+          )
+          .toList();
+    } catch (e) {
+      consoleLog('Error: $e');
+      return [];
     }
-    return files.search(searchTerms: query.removeFirstEqual(">"), searchOn: (file) => [file.name, file.fileNameWithoutExtension, file.path], levenshteinDistance: 2);
   }
 
   Future<Iterable<string>> searchSuggestions() async {
-    return (recentSearches + (await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""))).distinctFlat();
+    return [...recentSearches, ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""))].distinctFlat();
   }
 
   @override
@@ -155,6 +161,7 @@ class _SearchPageState extends State<SearchPage> {
         toolbarHeight: 100,
         title: isSearching
             ? Autocomplete<string>(
+                initialValue: queryController.value,
                 onSelected: (value) {
                   query = value;
                   setState(() {});
@@ -236,7 +243,11 @@ class _SearchPageState extends State<SearchPage> {
               onPressed: () {
                 if (isSearching) {
                   if (query.isNotBlank) {
-                    query = '';
+                    if (query.startsWithAny(tokenList)) {
+                      query = query.first();
+                    } else {
+                      query = "";
+                    }
                     queryFocusNode.requestFocus();
                   } else {
                     context.unfocus();
@@ -284,18 +295,21 @@ class _SearchPageState extends State<SearchPage> {
                       leading: const Icon(Icons.phone),
                       title: Text(loc.calltoItem(query.quote)),
                       onTap: callNumber,
+                      dense: true,
                     ),
                   if (query.isPhoneNumber)
                     ListTile(
                       leading: const Icon(Icons.message),
                       title: Text(loc.sendItemToItem("SMS", query.quote)),
                       onTap: smsTo,
+                      dense: true,
                     ),
                   if (query.isPhoneNumber && hasWhatsapp)
                     ListTile(
                       leading: Brand(Brands.whatsapp),
                       title: Text(loc.sendItemToItem("WhatsApp", query.quote)),
                       onTap: whatsAppTo,
+                      dense: true,
                     ),
                   if (query.isURL)
                     ListTile(
@@ -380,7 +394,8 @@ class _SearchPageState extends State<SearchPage> {
                       title: Text(file.name | file.fileNameWithoutExtension | file.path),
                       leading: const Icon(Icons.file_copy),
                       onTap: () => OpenFile.open(file.path),
-                    )
+                    ),
+                Gap(context.height * .12),
               ],
             ),
     );
