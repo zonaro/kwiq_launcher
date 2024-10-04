@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:innerlibs/innerlibs.dart';
@@ -10,6 +11,7 @@ import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:open_file/open_file.dart';
+import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -26,16 +28,17 @@ class _SearchPageState extends State<SearchPage> {
   string get query => queryController.text;
   set query(string value) => queryController.text = value;
   TextEditingController queryController = TextEditingController();
+  FocusNode queryFocusNode = FocusNode();
 
-  TextInputType inputType = TextInputType.text;
+  TextInputType inputType = TextInputType.url;
 
-  Future<List<AppInfo>> get searchApps async {
+  Iterable<AppInfo> get searchApps {
     try {
       if (apps.isEmpty) {
-        await loadApps();
+        loadApps();
       }
 
-      return filteredApps
+      return visibleApps
           .search(
             searchTerms: query.removeFirstEqual(":"),
             searchOn: (app) => [app.appName, app.packageName, ...getCategoriesOf(app)],
@@ -49,19 +52,10 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  Future<List<Contact>> get searchContacts async {
+  Iterable<Contact> get searchContacts {
     try {
       if (contacts.isEmpty) {
-        contacts = (await FlutterContacts.getContacts(
-          withAccounts: true,
-          withGroups: true,
-          deduplicateProperties: true,
-          withPhoto: true,
-          withThumbnail: true,
-          withProperties: true,
-          sorted: true,
-        ))
-            .toList();
+        loadContacts();
       }
 
       return contacts
@@ -84,22 +78,21 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  List<File> get searchFiles {
+  Iterable<File> get searchFiles {
     final dir = Directory('/storage/emulated/0/');
-    List<File> files = [];
-    try {
-      for (var file in dir.listSync(recursive: false).where((x) => x.path.startsWith('/storage/emulated/0/Android') == false)) {
+    Set<File> files = {};
+    for (var file in dir.listSync(recursive: false).where((x) => !x.path.startsWith('/storage/emulated/0/Android'))) {
+      try {
         if (file is Directory) {
           files.addAll(file.listSync(recursive: true).whereType<File>());
         } else {
           files.add(file as File);
         }
+      } catch (e) {
+        consoleLog('Error: $e');
       }
-    } catch (e) {
-      consoleLog('Error: $e');
-      return [];
     }
-    return files.search(searchTerms: query.removeFirstEqual(">"), searchOn: (file) => [file.name, file.fileNameWithoutExtension, file.path], levenshteinDistance: 2).toList();
+    return files.search(searchTerms: query.removeFirstEqual(">"), searchOn: (file) => [file.name, file.fileNameWithoutExtension, file.path], levenshteinDistance: 2);
   }
 
   Future<Iterable<string>> searchSuggestions() async {
@@ -114,18 +107,52 @@ class _SearchPageState extends State<SearchPage> {
     }
   }
 
-  final filesData = AwaiterData<List<File>>();
-  final contactData = AwaiterData<List<Contact>>();
-  final appData = AwaiterData<List<AppInfo>>();
-
   final loc = Get.context!.innerLibsLocalizations;
 
   bool isSearching = false;
+
+  string groupByMode(dynamic e, string mode) {
+    if (mode == 'alpha') {
+      return e is Contact ? (e).displayName.first() : (e as AppInfo).appName.first();
+    }
+    if (mode == 'category') {
+      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo)).firstOrNull ?? "Undefined";
+    }
+
+    return "All";
+  }
+
+  StickyGroupedListView groupedListView() => StickyGroupedListView<dynamic, String>(
+        elements: [...starredContacts, ...homeApps],
+        groupBy: (e) => groupByMode(e, "category"),
+        groupSeparatorBuilder: (e) => ListTile(
+          title: Text(groupByMode(e, "category")),
+        ),
+        itemBuilder: (context, element) {
+          if (element is Contact) {
+            return ContactTile(
+              contact: element,
+              gridColumns: 1,
+            );
+          } else {
+            return AppTile(
+              app: element,
+              gridColumns: 1,
+            );
+          }
+        },
+        itemScrollController: GroupedItemScrollController(),
+        order: StickyGroupedListOrder.ASC,
+      );
+
+  bool get showAutocomplete => prefs.getBool("showAutocomplete") ?? false;
+  set showAutocomplete(bool value) => prefs.setBool("showAutocomplete", value);
 
   @override
   build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 100,
         title: isSearching
             ? Autocomplete<string>(
                 onSelected: (value) {
@@ -135,40 +162,49 @@ class _SearchPageState extends State<SearchPage> {
                 },
                 fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                   queryController = controller;
+                  queryFocusNode = focusNode;
                   return TextFormField(
                     key: ValueKey(inputType),
                     autofocus: true,
                     focusNode: focusNode,
                     controller: controller,
                     onChanged: (value) {
-                      // query = value;
-                      filesData.expired = true;
-                      contactData.expired = true;
-                      appData.expired = true;
                       setState(() {});
                     },
                     decoration: InputDecoration(
                       border: const OutlineInputBorder(),
-                      label: loc.search.asText(),
+                      label: dynamicTitle.asText(),
                       hintStyle: TextStyle(color: context.colorScheme.onSurface.makeDarker(.8)),
                       hintText: recentSearches.lastOrNull ?? '${loc.search}...',
+                      suffixIcon: IconButton(
+                        icon: const Icon(
+                          Icons.auto_awesome,
+                        ).setOpacity(opacity: showAutocomplete ? 1 : .3),
+                        onPressed: () {
+                          setState(() {
+                            showAutocomplete = !showAutocomplete;
+                          });
+                          context.unfocus();
+                          focusNode.requestFocus();
+                        },
+                      ),
                     ),
+                    inputFormatters: [inputType == TextInputType.number ? FilteringTextInputFormatter.digitsOnly : FilteringTextInputFormatter.singleLineFormatter],
                     keyboardType: inputType,
                     textInputAction: TextInputAction.search,
                   );
                 },
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  return searchSuggestions();
-                },
+                optionsBuilder: (TextEditingValue textEditingValue) => showAutocomplete ? searchSuggestions() : [],
               )
             : const DigitalClock(),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Get.to(() => const SettingsScreen());
-            },
-          ),
+          if (!isSearching)
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Get.to(() => const SettingsScreen());
+              },
+            ),
         ],
       ),
       resizeToAvoidBottomInset: true,
@@ -185,12 +221,14 @@ class _SearchPageState extends State<SearchPage> {
                   // Toggle between full keyboard and numeric keyboard
                   if (inputType == TextInputType.url) {
                     inputType = TextInputType.number;
+                    query = query.onlyNumbers;
                   } else {
                     inputType = TextInputType.url;
                   }
                   context.unfocus();
                   await Get.forceAppUpdate();
                   setState(() {});
+                  queryFocusNode.requestFocus();
                 },
               ),
             const Gap(10),
@@ -199,12 +237,14 @@ class _SearchPageState extends State<SearchPage> {
                 if (isSearching) {
                   if (query.isNotBlank) {
                     query = '';
+                    queryFocusNode.requestFocus();
                   } else {
                     context.unfocus();
                     isSearching = false;
                   }
                 } else {
                   isSearching = true;
+                  queryFocusNode.requestFocus();
                 }
                 setState(() {});
               },
@@ -214,11 +254,9 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ),
       body: query.isBlank
-          ? GridView(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: gridColumns,
-                // mainAxisExtent: 100,
-              ),
+          ? GridView.count(
+              crossAxisCount: gridColumns,
+              shrinkWrap: true,
               children: [
                 for (var contact in starredContacts)
                   ContactTile(
@@ -240,7 +278,7 @@ class _SearchPageState extends State<SearchPage> {
                     app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
                     gridColumns: 1,
                   ),
-                if (!query.startsWithAny(tokens)) ...[
+                if (!query.startsWithAny(tokenList)) ...[
                   if (query.isPhoneNumber)
                     ListTile(
                       leading: const Icon(Icons.phone),
@@ -313,23 +351,12 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   const Divider(),
                 ],
-                if (query.startsWith(":") || !query.startsWithAny(tokens))
-                  FutureAwaiter(
-                      data: appData,
-                      future: () async => await searchApps,
-                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: Get.context!.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Apps..."))),
-                      builder: (apps) {
-                        return ListView(
-                          // shrinkWrap: true,
-                          children: [
-                            for (var app in apps)
-                              AppTile(
-                                app: app,
-                                gridColumns: 1,
-                              ),
-                          ],
-                        );
-                      }),
+                if (query.startsWith(":") || !query.startsWithAny(tokenList))
+                  for (var app in searchApps)
+                    AppTile(
+                      app: app,
+                      gridColumns: 1,
+                    ),
                 if (query.startsWith("#"))
                   for (var cat in categories)
                     ListTile(
@@ -337,40 +364,33 @@ class _SearchPageState extends State<SearchPage> {
                       title: Text(cat),
                       onTap: () {
                         query = cat;
+                        setState(() {});
+                        context.unfocus();
                       },
                     ),
-                if (query.startsWith("@") || !query.startsWithAny(tokens))
-                  FutureAwaiter(
-                      data: contactData,
-                      future: () async => await searchContacts,
-                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: context.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Contacts..."))),
-                      builder: (contacts) {
-                        return ListView(
-                          shrinkWrap: true,
-                          children: [for (var contact in contacts) ContactTile(contact: contact, gridColumns: 1)],
-                        );
-                      }),
-                if (query.startsWith(">") || !query.startsWithAny(tokens))
-                  FutureAwaiter(
-                      data: filesData,
-                      future: () async => searchFiles,
-                      loading: SizedBox(height: 100, child: Shimmer.fromColors(baseColor: context.colorScheme.surfaceBright, highlightColor: Get.context!.primaryColor, child: const Text("Searching Files..."))),
-                      builder: (files) {
-                        return ListView(
-                          shrinkWrap: true,
-                          children: [
-                            for (var file in files)
-                              ListTile(
-                                title: Text(file.name | file.fileNameWithoutExtension | file.path),
-                                leading: const Icon(Icons.file_copy),
-                                onTap: () => OpenFile.open(file.path),
-                              )
-                          ],
-                        );
-                      }),
+                if (query.startsWith("@") || !query.startsWithAny(tokenList))
+                  for (var contact in searchContacts)
+                    ContactTile(
+                      contact: contact,
+                      gridColumns: 1,
+                    ),
+                if (query.startsWith(">") || !query.startsWithAny(tokenList))
+                  for (var file in searchFiles)
+                    ListTile(
+                      title: Text(file.name | file.fileNameWithoutExtension | file.path),
+                      leading: const Icon(Icons.file_copy),
+                      onTap: () => OpenFile.open(file.path),
+                    )
               ],
             ),
     );
+  }
+
+  string get dynamicTitle {
+    if (query.startsWithAny(tokenList)) {
+      return tokens[query.first()]!;
+    }
+    return loc.search;
   }
 
   void bingSearch() {

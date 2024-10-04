@@ -9,7 +9,16 @@ import 'main_app.dart';
 
 typedef AppInfo = ApplicationWithIcon;
 
-const tokens = [':', '@', '#', '>'];
+Iterable<string> get tokenList => tokens.keys;
+
+final loc = Get.context!.innerLibsLocalizations;
+
+Map<string, string> get tokens => {
+      ':': loc.apps,
+      '@': loc.contacts,
+      '#': loc.categories,
+      '>': loc.files,
+    };
 
 late SharedPreferences prefs;
 
@@ -19,11 +28,11 @@ set gridColumns(int value) => prefs.setInt('gridColumns', value);
 Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.accentColor.accent;
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
-List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList() ?? [];
+List<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList() ?? [];
 set recentSearches(List<String> value) => prefs.setStringList('recentSearches', value.distinctFlat().toList());
 
 List<string> addRecentSearch(String value) {
-  recentSearches = [...recentSearches, value].where((x) => x.isNotEmpty && x.isNotIn(tokens) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList();
+  recentSearches = [...recentSearches, value].where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList();
   return recentSearches;
 }
 
@@ -46,8 +55,8 @@ removeCategory(AppInfo app, string category) => setCategoriesOf(app, getCategori
 
 List<AppInfo> apps = [];
 
-Map<string, List<AppInfo>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, filteredApps.where((app) => getCategoriesOf(app).contains(category)).toList())));
-List<AppInfo> get filteredApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
+Map<string, List<AppInfo>> get filteredAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => getCategoriesOf(app).contains(category)).toList())));
+List<AppInfo> get visibleApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName).toList();
 
 StringList get categories => apps.selectMany((app, i) => getCategoriesOf(app)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
 

@@ -12,30 +12,32 @@ class SettingsScreen extends StatefulWidget {
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
+final loc = Get.context!.innerLibsLocalizations;
+
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(loc.settings),
       ),
       body: ListView(
         children: [
           ListTile(
-            title: const Text('Wallpaper'),
+            title: Text(loc.wallpaper),
             onTap: () {
               context.showSnackBar("Soon...");
             },
           ),
           ListTile(
-            title: const Text('Main Color'),
-            onTap: () {
-              showColorPicker(context);
-              Get.forceAppUpdate();
+            title: Text('${loc.main} ${loc.color}'),
+            onTap: () async {
+              await showColorPicker(context);
+              await Get.forceAppUpdate();
             },
           ),
           ListTile(
-            title: const Text('Grid Size'),
+            title: Text(loc.gridSize),
             subtitle: Slider(
               min: 1,
               max: 8,
@@ -48,14 +50,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Get.forceAppUpdate();
               },
             ),
-            trailing: Text('$gridColumns'),
+            trailing: CircleAvatar(
+              backgroundColor: mainColor,
+              child: Text('$gridColumns'),
+            ),
           ),
           FutureAwaiter(
             future: () async => PackageInfo.fromPlatform(),
             builder: (info) => AboutListTile(
               applicationName: info.appName,
               applicationVersion: info.version,
-              applicationIcon: Image.asset('assets/kwiq.png', width: 60, height: 60),
+              applicationIcon: Image.asset('assets/kwiq.png', width: 80, height: 80),
               applicationLegalese: '© ${now.year} Kaizonaro Apps',
             ),
           ),
@@ -65,8 +70,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 }
 
-void showColorPicker(BuildContext context) {
-  showDialog(
+Future<void> showColorPicker(BuildContext context) async {
+  await showDialog(
     context: context,
     builder: (BuildContext context) {
       Color selectedColor = mainColor;
@@ -87,7 +92,7 @@ void showColorPicker(BuildContext context) {
               await SystemTheme.accentColor.load();
               selectedColor = SystemTheme.accentColor.accent;
             },
-            child: "Default".asText(),
+            child: loc.defaultWord.asText(),
           ),
           TextButton(
             child: context.materialLocalizations.cancelButtonLabel.asText(),
@@ -101,6 +106,7 @@ void showColorPicker(BuildContext context) {
               mainColor = selectedColor;
               Get.changeTheme(ThemeData.from(colorScheme: Get.isDarkMode ? ColorScheme.dark(primary: mainColor) : ColorScheme.light(primary: mainColor)));
               context.pop();
+              Get.forceAppUpdate();
             },
           ),
         ],
