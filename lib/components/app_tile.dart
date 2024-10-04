@@ -37,6 +37,7 @@ class _AppTileState extends State<AppTile> {
               CircleAvatar(
                 backgroundImage: MemoryImage(widget.app.icon),
               ),
+            const Gap(10),
             if (widget.showLabel) ...[
               const SizedBox(height: 8),
               AutoSizeText(
@@ -46,9 +47,12 @@ class _AppTileState extends State<AppTile> {
             ]
           ];
           return GridTile(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: children,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: children,
+              ),
             ),
           );
         } else {

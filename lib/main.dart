@@ -23,6 +23,7 @@ Map<string, string> get tokens => {
       '@': loc.contacts,
       '#': loc.categories,
       '>': loc.files,
+      '=': loc.calculate,
     };
 
 late SharedPreferences prefs;
@@ -102,20 +103,21 @@ Future<Set<File>> loadFiles() async {
 // get the path of internal memory and sd card
   var paths = await ExternalPath.getExternalStorageDirectories();
 
-  for (var path in paths) {
-    var dir = Directory(path);
-
-    if (await dir.exists()) {
-      for (var f in await dir.listFiles) {
-        files.add(f);
-      }
-
-      for (var f in await dir.listDirectories) {
-        try {
-          files.addAll(await f.listFilesRecursive);
-        } catch (e) {
-          consoleLog(e);
+  for (var dir in paths.map((e) => Directory(e))) {
+    if (await dir.exists() == false) {
+      continue;
+    }
+    try {
+      await for (FileSystemEntity entity in dir.list(recursive: true)) {
+        if (entity is File && await entity.exists()) {
+          files.add(entity);
         }
+      }
+    } catch (e) {
+      if (e is FileSystemException) {
+        consoleLog('Access denied: ${e.path}');
+      } else {
+        consoleLog(e);
       }
     }
   }

@@ -35,6 +35,7 @@ dependencies:
   restart_app :
   icons_plus :
   external_path:
+  math_expressions:
   innerlibs:
     path: ../innerlibs_dart
 

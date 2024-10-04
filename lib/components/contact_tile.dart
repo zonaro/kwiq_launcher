@@ -46,6 +46,7 @@ class _ContactTileState extends State<ContactTile> {
               backgroundImage: (pic) != null ? MemoryImage(pic) : null,
               child: pic == null ? AutoSizeText(namePart) : null,
             ),
+            const Gap(10),
             if (widget.showLabel) ...[
               AutoSizeText(
                 widget.contact.displayName,
@@ -54,9 +55,12 @@ class _ContactTileState extends State<ContactTile> {
             ]
           ];
           return GridTile(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: children,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: children,
+              ),
             ),
           );
         } else {
