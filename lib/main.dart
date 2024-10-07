@@ -53,7 +53,7 @@ Iterable<AppInfo> get homeApps => apps.where((app) => dockedApps.flatContains(ap
 Iterable<string> getCategoriesOf(AppInfo app) => <string>[
       app.category.name,
       ...?prefs.getStringList('categories::${app.packageName}'),
-    ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase);
+    ].distinctFlat().orderBy((x) => x).map((x) => x.toTitleCase());
 
 setCategoriesOf(AppInfo app, StringList categories) => prefs.setStringList('categories::${app.packageName}', categories.distinctFlat().toList());
 addCategory(AppInfo app, string category) => setCategoriesOf(app, [...getCategoriesOf(app), category]);
@@ -66,11 +66,13 @@ Set<Contact> contacts = {};
 Map<string, Iterable<AppInfo>> get visibleAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => getCategoriesOf(app).contains(category)))));
 Iterable<AppInfo> get visibleApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName);
 
-StringList get categories => apps.selectMany((app, i) => getCategoriesOf(app)).orderBy((x) => x).map((x) => x.toTitleCase).distinct().toList();
+StringList get categories => apps.selectMany((app, i) => getCategoriesOf(app)).orderBy((x) => x).map((x) => x.toTitleCase()).distinct().toList();
 
 Iterable<Contact> get starredContacts => contacts.where((contact) => contact.isStarred);
 
 bool get hasWhatsapp => apps.map((x) => x.packageName).containsAny(['com.whatsapp', 'com.whatsapp.w4b']);
+
+bool get hasSpotify => apps.map((x) => x.packageName).containsAny(['com.spotify.music', 'com.spotify.lite', "com.spotify.tv.android"]);
 
 Future<Set<Contact>> loadContacts() async {
   await FlutterContacts.requestPermission();
@@ -129,19 +131,31 @@ void main() async {
   initializeDateFormatting();
 
   prefs = await SharedPreferences.getInstance();
-  SystemTheme.fallbackColor = NamedColors.redColor;
-  SystemTheme.onChange.listen((event) {
-    mainColor = event.accent;
+  SystemTheme.fallbackColor = NamedColor.redColor;
+
+  loadApps().then((_) {
+    Get.forceAppUpdate();
+  });
+  loadContacts().then((_) {
+    Get.forceAppUpdate();
+  });
+  loadFiles().then((_) {
+    Get.forceAppUpdate();
   });
 
-  await loadApps();
-  await loadContacts();
-  await loadFiles();
+  SystemTheme.onChange.listen((event) {
+    mainColor = event.accent;
+    Get.forceAppUpdate();
+  });
 
-  Timer.periodic(const Duration(seconds: 30), (timer) async {
+  DeviceApps.listenToAppsChanges().listen((event) async {
     await loadApps();
+    Get.forceAppUpdate();
+  });
+
+  FlutterContacts.addListener(() async {
     await loadContacts();
-    await loadFiles();
+    Get.forceAppUpdate();
   });
 
   runApp(const MainApp());

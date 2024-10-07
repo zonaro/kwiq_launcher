@@ -36,7 +36,7 @@ class MyAppMenuScreen extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () => app.openApp(),
-                child: const Text('Open App'),
+                child: Text(loc.openItem(loc.app)),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -47,17 +47,17 @@ class MyAppMenuScreen extends StatelessWidget {
                   }
                   Get.forceAppUpdate();
                 },
-                child: Text(dockedApps.flatContains(app.packageName) ? "Undock App" : 'Dock App'),
+                child: Text(dockedApps.flatContains(app.packageName) ? "${loc.undock} ${loc.app}" : "${loc.dock} ${loc.app}"),
               ),
               ElevatedButton(
                 onPressed: () => app.openSettingsScreen(),
-                child: const Text('App Settings'),
+                child: Text(loc.appSettings),
               ),
               ElevatedButton(
                   onPressed: () {
                     launchUrl(Uri.parse("https://play.google.com/store/apps/details?id=${app.packageName}"));
                   },
-                  child: const Text("Show on PlayStore")),
+                  child: Text(loc.openItem("Play Store"))),
               ElevatedButton(
                 onPressed: () {
                   if (hiddenApps.flatContains(app.packageName)) {
@@ -65,14 +65,15 @@ class MyAppMenuScreen extends StatelessWidget {
                   } else {
                     hiddenApps = [...hiddenApps, app.packageName];
                   }
+                  Get.forceAppUpdate();
                 },
-                child: Text(hiddenApps.flatContains(app.packageName) ? 'Show App' : 'Hide App'),
+                child: Text(hiddenApps.flatContains(app.packageName) ? '${loc.show} ${loc.app}' : '${loc.hide} ${loc.app}'),
               ),
               ElevatedButton(
                 onPressed: () async {
                   await context.push(CategoriesPage(app: app));
                 },
-                child: const Text('Set Categories'),
+                child: Text(loc.categories),
               ),
               if (!app.systemApp)
                 ElevatedButton(
@@ -81,7 +82,7 @@ class MyAppMenuScreen extends StatelessWidget {
                       apps.removeWhere((element) => element.packageName == app.packageName);
                     }
                   },
-                  child: const Text('Uninstall App'),
+                  child: Text('${loc.uninstall} ${loc.app}'),
                 ),
             ],
           ),

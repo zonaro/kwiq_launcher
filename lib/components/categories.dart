@@ -16,13 +16,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App Categories'),
+        title: Text(loc.categories),
       ),
       body: ResponsiveRow.withColumns(
         children: [
           for (var cat in categories)
             CheckboxListTile(
-              title: Text(cat.toTitleCase),
+              title: Text(cat.toTitleCase()),
               enabled: !widget.app.category.name.flatEqual(cat),
               value: getCategoriesOf(widget.app).contains(cat),
               onChanged: (bool? value) {
@@ -41,14 +41,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          var category = await context.prompt(title: 'New Category');
+          var category = await context.prompt(title: loc.newItem(loc.category));
           if (category.isNotBlank) {
             setState(() {
               addCategory(widget.app, category!);
             });
           }
         },
-        label: const Text('Add Category'),
+        label: Text('${loc.add} ${loc.category}'),
         icon: const Icon(Icons.add),
       ),
     );

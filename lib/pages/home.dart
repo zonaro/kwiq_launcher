@@ -10,6 +10,7 @@ import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:math_expressions/math_expressions.dart';
+import 'package:new_device_apps/device_apps.dart';
 import 'package:open_file/open_file.dart';
 import 'package:sticky_grouped_list/sticky_grouped_list.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController queryController = TextEditingController();
   FocusNode queryFocusNode = FocusNode();
 
-  TextInputType inputType = TextInputType.url;
+  TextInputType inputType = TextInputType.text;
 
   Iterable<string> get parseMath {
     var mathExp = query.removeFirstEqual("=");
@@ -173,278 +174,347 @@ class _HomePageState extends State<HomePage> {
 
   @override
   build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 70,
-        title: isSearching
-            ? Autocomplete<string>(
-                initialValue: queryController.value,
-                onSelected: (value) {
-                  query = value;
-                  setState(() {});
-                  context.unfocus();
-                },
-                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  queryController = controller;
-                  queryFocusNode = focusNode;
-                  return TextFormField(
-                    key: ValueKey(inputType),
-                    autofocus: true,
-                    focusNode: focusNode,
-                    controller: controller,
-                    onChanged: (value) {
-                      setState(() {});
-                    },
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
-                      label: dynamicTitle.asText(),
-                      hintStyle: TextStyle(color: context.colorScheme.onSurface.makeDarker(.8)),
-                      hintText: recentSearches.lastOrNull ?? '${loc.search}...',
-                      suffixIcon: IconButton(
-                        icon: const Icon(
-                          Icons.auto_awesome,
-                        ).setOpacity(opacity: showAutocomplete ? 1 : .3),
-                        onPressed: () {
-                          setState(() {
-                            showAutocomplete = !showAutocomplete;
-                          });
-                          context.unfocus();
-                          focusNode.requestFocus();
-                        },
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        isSearching = !isSearching;
+        setState(() {});
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          toolbarHeight: isSearching ? 70 : null,
+          title: isSearching
+              ? Autocomplete<string>(
+                  initialValue: queryController.value,
+                  onSelected: (value) {
+                    query = value;
+                    setState(() {});
+                    context.unfocus();
+                  },
+                  fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
+                    queryController = controller;
+                    queryFocusNode = focusNode;
+                    return TextFormField(
+                      key: ValueKey(inputType),
+                      autofocus: true,
+                      focusNode: focusNode,
+                      controller: controller,
+                      onChanged: (value) {
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        label: dynamicTitle.asText(),
+                        hintStyle: TextStyle(color: context.colorScheme.onSurface.makeDarker(.8)),
+                        hintText: recentSearches.lastOrNull ?? '${loc.search}...',
+                        suffixIcon: IconButton(
+                          icon: const Icon(
+                            Icons.auto_awesome,
+                          ).setOpacity(opacity: showAutocomplete ? 1 : .3),
+                          onPressed: () {
+                            setState(() {
+                              showAutocomplete = !showAutocomplete;
+                            });
+                            context.unfocus();
+                            focusNode.requestFocus();
+                          },
+                        ),
                       ),
-                    ),
-                    keyboardType: inputType,
-                    textInputAction: TextInputAction.search,
-                  );
-                },
-                optionsBuilder: (TextEditingValue textEditingValue) => showAutocomplete ? searchSuggestions() : [],
-              )
-            : const DigitalClock(),
-        actions: [
-          if (!isSearching)
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () {
-                Get.to(() => const SettingsScreen());
-              },
-            ),
-        ],
-      ),
-      resizeToAvoidBottomInset: true,
-      floatingActionButton: SizedBox(
-        width: context.width,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            if (isSearching)
-              FloatingActionButton.small(
-                child: Icon((inputType == TextInputType.number ? Icons.numbers : Icons.abc)),
-                onPressed: () async {
-                  // Toggle between full keyboard and numeric keyboard
-                  if (inputType == TextInputType.url) {
-                    inputType = TextInputType.number;
-                  } else {
-                    inputType = TextInputType.url;
-                  }
-                  context.unfocus();
-                  await Get.forceAppUpdate();
-                  setState(() {});
-                  queryFocusNode.requestFocus();
+                      keyboardType: inputType,
+                      textInputAction: TextInputAction.search,
+                    );
+                  },
+                  optionsBuilder: (TextEditingValue textEditingValue) => showAutocomplete ? searchSuggestions() : [],
+                )
+              : const DigitalClock(),
+          actions: [
+            if (!isSearching)
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () {
+                  Get.to(() => const SettingsScreen());
                 },
               ),
-            const Gap(10),
-            FloatingActionButton(
-              onPressed: () {
-                if (isSearching) {
-                  if (query.isNotBlank) {
-                    if (query.startsWithAny(tokenList)) {
-                      if (query.flatEqualAny(tokenList)) {
-                        query = "";
-                      } else {
-                        query = query.first();
-                      }
-                    } else {
-                      query = "";
-                    }
-                    queryFocusNode.requestFocus();
-                  } else {
-                    context.unfocus();
-                    isSearching = false;
-                  }
-                } else {
-                  isSearching = true;
-                  queryFocusNode.requestFocus();
-                }
-                setState(() {});
-              },
-              child: Icon(isSearching ? (query.isNotBlank ? Icons.clear_all : Icons.close) : Icons.search),
-            ),
           ],
         ),
-      ),
-      body: query.isBlank
-          ? ResponsiveRow.withColumns(
-              xxs: gridColumns.toDouble(),
-              children: [
-                for (var contact in starredContacts)
-                  ContactTile(
-                    contact: contact,
-                    gridColumns: gridColumns,
-                  ),
-                for (var app in homeApps)
-                  AppTile(
-                    app: app,
-                    gridColumns: gridColumns,
-                  ),
-                Gap(context.height * .12),
-              ],
-            )
-          : ListView(
-              shrinkWrap: true,
-              children: [
-                    if (query.startsWith("="))
-                      for (var result in parseMath)
-                        ListTile(
-                          title: Text(result).fontSize(35).bold(),
-                          subtitle: Text(query),
-                          leading: const Icon(Icons.calculate),
-                          onTap: () {
-                            query = result;
-                            setState(() {});
-                          },
-                        ),
-                    if (apps.any((a) => a.packageName.flatEqual(query)))
-                      AppTile(
-                        app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
-                        gridColumns: 1,
-                      ),
-                    if (!query.startsWithAny(tokenList)) ...[
-                      if (query.isPhoneNumber)
-                        ListTile(
-                          leading: const Icon(Icons.phone),
-                          title: Text(loc.calltoItem(query.quote)),
-                          onTap: callNumber,
-                          dense: true,
-                        ),
-                      if (query.isPhoneNumber)
-                        ListTile(
-                          leading: const Icon(Icons.message),
-                          title: Text(loc.sendItemToItem("SMS", query.quote)),
-                          onTap: smsTo,
-                          dense: true,
-                        ),
-                      if (query.isPhoneNumber && hasWhatsapp)
-                        ListTile(
-                          leading: Brand(Brands.whatsapp),
-                          title: Text(loc.sendItemToItem("WhatsApp", query.quote)),
-                          onTap: whatsAppTo,
-                          dense: true,
-                        ),
-                      if (query.isURL)
-                        ListTile(
-                          leading: const Icon(Icons.link),
-                          title: Text('${loc.open} URL "$query"'),
-                          onTap: openUrl,
-                          dense: true,
-                        ),
-                      if (query.isEmail)
-                        ListTile(
-                          leading: const Icon(Icons.email),
-                          title: Text('${loc.newItem("email")} ${loc.to} "$query"'),
-                          onTap: openMail,
-                          dense: true,
-                        ),
-                      ListTile(
-                        leading: Brand(Brands.google),
-                        title: Text(loc.searchForIn(query.quote, "Google")),
-                        onTap: googleSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.bing),
-                        title: Text(loc.searchForIn(query.quote, "Bing")),
-                        onTap: bingSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.youtube),
-                        title: Text(loc.searchForIn(query.quote, "YouTube")),
-                        onTap: youtubeSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.youtube_music),
-                        title: Text(loc.searchForIn(query.quote, "YouTube Music")),
-                        onTap: youtubeMusicSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.spotify),
-                        title: Text(loc.searchForIn(query.quote, "Spotify")),
-                        onTap: spotifySearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.google_play),
-                        title: Text(loc.searchForIn(query.quote, "Play Store")),
-                        onTap: playStoreSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.google_maps),
-                        title: Text(loc.searchForIn(query.quote, "Google Maps")),
-                        onTap: mapSearch,
-                        dense: true,
-                      ),
-                      ListTile(
-                        leading: Brand(Brands.instagram),
-                        title: Text('${loc.open} "instagram/${query.toSnakeCase}"'),
-                        onTap: instagramOpen,
-                        dense: true,
-                      ),
-                      const Divider(),
-                    ],
-                    if (query.startsWith(":") || !query.startsWithAny(tokenList))
-                      for (var app in searchApps)
-                        AppTile(
-                          app: app,
-                          gridColumns: 1,
-                        ),
-                    if (query.startsWith("#"))
-                      for (var cat in categories)
-                        ListTile(
-                          leading: Icon(categoryIcon(cat)),
-                          title: Text(cat),
-                          onTap: () {
-                            query = cat;
-                            setState(() {});
-                            context.unfocus();
-                          },
-                        ),
-                    if (query.startsWith("@") || !query.startsWithAny(tokenList))
-                      for (var contact in searchContacts)
+        resizeToAvoidBottomInset: true,
+        floatingActionButton: SizedBox(
+          width: context.width,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              if (isSearching)
+                FloatingActionButton.small(
+                  child: Icon((inputType == TextInputType.number ? Icons.numbers : Icons.abc)),
+                  onPressed: () async {
+                    // Toggle between full keyboard and numeric keyboard
+                    if (inputType == TextInputType.text) {
+                      inputType = TextInputType.number;
+                    } else {
+                      inputType = TextInputType.text;
+                    }
+                    context.unfocus();
+                    await Get.forceAppUpdate();
+                    setState(() {});
+                    queryFocusNode.requestFocus();
+                  },
+                ),
+              const Gap(10),
+              FloatingActionButton(
+                onPressed: () {
+                  if (isSearching) {
+                    if (query.isNotBlank) {
+                      if (query.startsWithAny(tokenList)) {
+                        if (query.flatEqualAny(tokenList)) {
+                          query = "";
+                        } else {
+                          query = query.first();
+                        }
+                      } else {
+                        query = "";
+                      }
+                      queryFocusNode.requestFocus();
+                    } else {
+                      context.unfocus();
+                      isSearching = false;
+                    }
+                  } else {
+                    isSearching = true;
+                    queryFocusNode.requestFocus();
+                  }
+                  setState(() {});
+                },
+                child: Icon(isSearching ? (query.isNotBlank ? Icons.clear_all : Icons.close) : Icons.search),
+              ),
+            ],
+          ),
+        ),
+        body: !isSearching
+            ? PageView(
+                children: [
+                  ResponsiveRow.withColumns(
+                    xxs: gridColumns.toDouble(),
+                    children: [
+                      for (var contact in starredContacts)
                         ContactTile(
                           contact: contact,
+                          gridColumns: gridColumns,
+                        ),
+                      for (var app in homeApps)
+                        AppTile(
+                          app: app,
+                          gridColumns: gridColumns,
+                        ),
+                      for (var search in recentSearches)
+                        ResponsiveColumn.full(
+                          child: ListTile(
+                            title: Text(search),
+                            leading: const Icon(Icons.search),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_forever),
+                              onPressed: () {
+                                recentSearches = recentSearches.where((x) => x != search).toList();
+                                setState(() {});
+                                Get.forceAppUpdate();
+                              },
+                            ),
+                            onTap: () {
+                              isSearching = true;
+                              query = search;
+                              setState(() {});
+                              Get.forceAppUpdate();
+                            },
+                          ),
+                        ),
+                      Gap(context.height * .12),
+                    ],
+                  ),
+                  for (var cat in categories)
+                    Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(15),
+                            child: FittedBox(
+                                child: Column(
+                              children: [
+                                Icon(categoryIcon(cat), size: context.width),
+                                const Gap(10),
+                                Text(cat).bold().fontSize(context.width),
+                              ],
+                            )),
+                          ),
+                        ).setOpacity(opacity: .01),
+                        Container(
+                          color: mainColor.withOpacity(.03),
+                          child: ResponsiveRow.withColumns(
+                            xxs: gridColumns.toDouble(),
+                            children: [
+                              ResponsiveColumn.full(
+                                child: ListTile(title: Text(cat).bold().fontSize(20)),
+                                alignment: Alignment.center,
+                              ),
+                              for (ApplicationWithIcon app in visibleAppsByCategory[cat] ?? [])
+                                AppTile(
+                                  app: app,
+                                  gridColumns: gridColumns,
+                                ),
+                              Gap(context.height * .12),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              )
+            : ListView(
+                shrinkWrap: true,
+                children: [
+                      if (query.startsWith("="))
+                        for (var result in parseMath)
+                          ListTile(
+                            title: Text(result).fontSize(35).bold(),
+                            leading: const Icon(Icons.calculate),
+                            onTap: () {
+                              query = result;
+                              setState(() {});
+                            },
+                          ),
+                      if (apps.any((a) => a.packageName.flatEqual(query)))
+                        AppTile(
+                          app: apps.firstWhere((a) => a.packageName.flatEqual(query)),
                           gridColumns: 1,
                         ),
-                    if (query.startsWith(">") || !query.startsWithAny(tokenList))
-                      for (var file in searchFiles)
+                      if (query.isNotBlank && !query.startsWithAny(tokenList)) ...[
+                        if (query.isPhoneNumber)
+                          ListTile(
+                            leading: const Icon(Icons.phone),
+                            title: Text(loc.calltoItem(query.quote)),
+                            onTap: callNumber,
+                            dense: true,
+                          ),
+                        if (query.isPhoneNumber)
+                          ListTile(
+                            leading: const Icon(Icons.message),
+                            title: Text(loc.sendItemToItem("SMS", query.quote)),
+                            onTap: smsTo,
+                            dense: true,
+                          ),
+                        if (query.isPhoneNumber && hasWhatsapp)
+                          ListTile(
+                            leading: Brand(Brands.whatsapp),
+                            title: Text(loc.sendItemToItem("WhatsApp", query.quote)),
+                            onTap: whatsAppTo,
+                            dense: true,
+                          ),
+                        if (query.isURL)
+                          ListTile(
+                            leading: const Icon(Icons.link),
+                            title: Text('${loc.open} URL "$query"'),
+                            onTap: openUrl,
+                            dense: true,
+                          ),
+                        if (query.isEmail)
+                          ListTile(
+                            leading: const Icon(Icons.email),
+                            title: Text('${loc.newItem("email")} ${loc.to} "$query"'),
+                            onTap: openMail,
+                            dense: true,
+                          ),
                         ListTile(
-                          title: Text(file.name | file.fileNameWithoutExtension | file.path),
-                          leading: const Icon(Icons.file_copy),
-                          onTap: () => OpenFile.open(file.path),
+                          leading: Brand(Brands.google),
+                          title: Text(loc.searchForIn(query.quote, "Google")),
+                          onTap: googleSearch,
+                          dense: true,
                         ),
-                  ]
-                      .defaultIfEmpty(Center(
-                        child: EmptyWidget(
-                          title: loc.search,
-                          subTitle: loc.itemNotFoundIn(query, dynamicTitle),
+                        ListTile(
+                          leading: Brand(Brands.bing),
+                          title: Text(loc.searchForIn(query.quote, "Bing")),
+                          onTap: bingSearch,
+                          dense: true,
                         ),
-                      ))
-                      .toList() +
-                  [Gap(context.height * .12)],
-            ),
+                        ListTile(
+                          leading: Brand(Brands.youtube),
+                          title: Text(loc.searchForIn(query.quote, "YouTube")),
+                          onTap: youtubeSearch,
+                          dense: true,
+                        ),
+                        ListTile(
+                          leading: Brand(Brands.youtube_music),
+                          title: Text(loc.searchForIn(query.quote, "YouTube Music")),
+                          onTap: youtubeMusicSearch,
+                          dense: true,
+                        ),
+                        if (hasSpotify)
+                          ListTile(
+                            leading: Brand(Brands.spotify),
+                            title: Text(loc.searchForIn(query.quote, "Spotify")),
+                            onTap: spotifySearch,
+                            dense: true,
+                          ),
+                        ListTile(
+                          leading: Brand(Brands.google_play),
+                          title: Text(loc.searchForIn(query.quote, "Play Store")),
+                          onTap: playStoreSearch,
+                          dense: true,
+                        ),
+                        ListTile(
+                          leading: Brand(Brands.google_maps),
+                          title: Text(loc.searchForIn(query.quote, "Google Maps")),
+                          onTap: mapSearch,
+                          dense: true,
+                        ),
+                        ListTile(
+                          leading: Brand(Brands.instagram),
+                          title: Text('${loc.open} "instagram/${query.toSnakeCase}"'),
+                          onTap: instagramOpen,
+                          dense: true,
+                        ),
+                        const Divider(),
+                      ],
+                      if (query.startsWith(":") || !query.startsWithAny(tokenList))
+                        for (var app in searchApps)
+                          AppTile(
+                            app: app,
+                            gridColumns: 1,
+                          ),
+                      if (query.startsWith("#"))
+                        for (var cat in categories)
+                          ListTile(
+                            leading: Icon(categoryIcon(cat)),
+                            title: Text(cat),
+                            onTap: () {
+                              query = cat;
+                              setState(() {});
+                              context.unfocus();
+                            },
+                          ),
+                      if (query.startsWith("@") || !query.startsWithAny(tokenList))
+                        for (var contact in searchContacts)
+                          ContactTile(
+                            contact: contact,
+                            gridColumns: 1,
+                          ),
+                      if (query.startsWith(">") || !query.startsWithAny(tokenList))
+                        for (var file in searchFiles)
+                          ListTile(
+                            title: Text(file.name | file.fileNameWithoutExtension | file.path),
+                            leading: const Icon(Icons.file_copy),
+                            onTap: () => OpenFile.open(file.path),
+                          ),
+                    ]
+                        .defaultIfEmpty(Center(
+                          child: EmptyWidget(
+                            title: loc.search,
+                            subTitle: loc.itemNotFoundIn(query, dynamicTitle),
+                          ),
+                        ))
+                        .toList() +
+                    [Gap(context.height * .12)],
+              ),
+      ),
     );
   }
 
@@ -479,15 +549,14 @@ class _HomePageState extends State<HomePage> {
         mode: LaunchMode.externalApplication);
   }
 
-  void openMail() => launchUrlString('mailto:$query');
+  void openMail() => launchUrlString('mailto:$query', mode: LaunchMode.externalApplication);
 
   void openUrl() {
-    if (query.startsWith("http")) {
-      launchUrlString(query);
-    } else {
-      launchUrlString('http://$query');
+    if (!query.startsWith("http")) {
+      query = 'http://$query';
     }
-    launchUrlString(query);
+    addRecentSearch(query);
+    launchUrlString(query, mode: LaunchMode.externalApplication);
   }
 
   void playStoreSearch() {
@@ -499,7 +568,6 @@ class _HomePageState extends State<HomePage> {
 
   void spotifySearch() {
     addRecentSearch(query);
-
     launchUrl(Uri.https('open.spotify.com', '/search/$query'), mode: LaunchMode.externalApplication);
   }
 
