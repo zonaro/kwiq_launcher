@@ -36,6 +36,7 @@ dependencies:
   icons_plus :
   external_path:
   math_expressions:
+  flutter_phone_direct_caller :
   innerlibs:
     path: ../innerlibs_dart
 

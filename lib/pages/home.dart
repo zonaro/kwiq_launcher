@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
@@ -484,7 +485,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void callNumber() => launchUrlString('tel: $query');
+  void callNumber() async => await FlutterPhoneDirectCaller.callNumber(query);
 
   void googleSearch() {
     addRecentSearch(query);
@@ -530,42 +531,62 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     HardwareKeyboard.instance.addHandler((event) {
-      if (event.isControl(LogicalKeyboardKey.keyF) || event.isKeyPressed(LogicalKeyboardKey.f2)) {
-        isSearching = !isSearching;
-        if (isSearching) queryFocusNode.requestFocus();
-        setState(() {});
-        return true;
-      } else if (event.isControl(LogicalKeyboardKey.semicolon) || event.isControl(LogicalKeyboardKey.keyC)) {
-        isSearching = true;
-        query = ":";
-        return true;
-      } else if (event.isControl(LogicalKeyboardKey.at) || event.isControl(LogicalKeyboardKey.keyP)) {
-        isSearching = true;
-        query = "@";
-        return true;
-      } else if (event.isControl(LogicalKeyboardKey.keyB) || event.isKeyPressed(LogicalKeyboardKey.launchWebBrowser) || event.isKeyPressed(LogicalKeyboardKey.browserSearch)) {
-        isSearching = true;
-        query = "http://";
-        return true;
-      } else if (event.isControl(LogicalKeyboardKey.add) || event.isControl(LogicalKeyboardKey.keyM)) {
-        isSearching = true;
-        query = "=";
-        return true;
-      } else if (event.isKeyPressed(LogicalKeyboardKey.f12)) {
-        Get.to(() => const SettingsScreen());
-      } else if (event.isControl(LogicalKeyboardKey.keyG)) {
-        isSearching = true;
-        query = "#";
-        return true;
-      } else if (event.isControlAlt(LogicalKeyboardKey.keyF)) {
-        isSearching = true;
-        query = ">"; // Files
-        return true;
-      } else if (event.isControl(LogicalKeyboardKey.keyI)) {
-        showAutocomplete = !showAutocomplete;
-        setState(() {});
-        return true;
+      if (event is KeyDownEvent) {
+        if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
+          isSearching = false;
+          context.unfocus();
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyF) || event.isKeyPressed(LogicalKeyboardKey.f2) || event.isMeta(LogicalKeyboardKey.space)) {
+          isSearching = !isSearching;
+          setState(() {});
+          if (isSearching) queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.semicolon) || event.isControl(LogicalKeyboardKey.keyQ)) {
+          isSearching = true;
+          query = ":";
+          setState(() {});
+          queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.at) || event.isControl(LogicalKeyboardKey.keyP)) {
+          isSearching = true;
+          query = "@";
+          setState(() {});
+          queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyB) || event.isKeyPressed(LogicalKeyboardKey.launchWebBrowser) || event.isKeyPressed(LogicalKeyboardKey.browserSearch)) {
+          isSearching = true;
+          query = "http://";
+          queryFocusNode.requestFocus();
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.add) || event.isControl(LogicalKeyboardKey.keyM)) {
+          isSearching = true;
+          query = "=";
+          queryFocusNode.requestFocus();
+          setState(() {});
+          return true;
+        } else if (event.isKeyPressed(LogicalKeyboardKey.f12)) {
+          Get.to(() => const SettingsScreen());
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyG)) {
+          isSearching = true;
+          query = "#";
+          setState(() {});
+          return true;
+        } else if (event.isControlAlt(LogicalKeyboardKey.keyF)) {
+          isSearching = true;
+          query = ">"; // Files
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyI)) {
+          showAutocomplete = !showAutocomplete;
+          setState(() {});
+          return true;
+        }
       }
+
       return false;
     });
   }
