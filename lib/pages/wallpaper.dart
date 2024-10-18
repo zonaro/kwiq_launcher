@@ -3,6 +3,90 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 
+var conn = GetConnect();
+
+class PixabayScreen extends StatelessWidget {
+  const PixabayScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<String>>(
+      future: _fetchWallpapers(''),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final wallpapers = snapshot.data!;
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            itemCount: wallpapers.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () async {
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
+                  final base64 = base64Encode(bytes);
+                  //TODO: Handle the base64 string as needed
+                },
+                child: Image.network(wallpapers[index], fit: BoxFit.cover),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<List<String>> _fetchWallpapers(String query) async {
+    final response = await conn.get<JsonMap>('https://pixabay.com/api/?key=YOUR_API_KEY&q=$query&image_type=photo');
+    final data = response.body!;
+    return (data['hits'] as List).map((hit) => hit['webformatURL'] as String).toList();
+  }
+}
+
+class UnsplashScreen extends StatelessWidget {
+  const UnsplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<String>>(
+      future: _fetchWallpapers(''),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final wallpapers = snapshot.data!;
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            itemCount: wallpapers.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () async {
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
+                  final base64 = base64Encode(bytes);
+                  //TODO: Handle the base64 string as needed
+                },
+                child: Image.network(wallpapers[index], fit: BoxFit.cover),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<List<String>> _fetchWallpapers(String query) async {
+    final response = await conn.get<JsonMap>('https://api.unsplash.com/search/photos?query=$query&client_id=YOUR_API_KEY');
+    final data = response.body!;
+    return (data['results'] as List).map((result) => result['urls']['small'] as String).toList();
+  }
+}
+
 class WallpaperApp extends StatefulWidget {
   const WallpaperApp({super.key});
 
@@ -10,27 +94,56 @@ class WallpaperApp extends StatefulWidget {
   createState() => _WallpaperAppState();
 }
 
-class _WallpaperAppState extends State<WallpaperApp> {
-  int _selectedIndex = 0;
-  String _query = '';
+class WallpaperHavenScreen extends StatelessWidget {
+  const WallpaperHavenScreen({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<String>>(
+      future: _fetchWallpapers(''),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          final wallpapers = snapshot.data!;
+          return GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            itemCount: wallpapers.length,
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: () async {
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
+                  final base64 = base64Encode(bytes);
+                  consoleLog(base64); // Handle the base64 string as needed
+                },
+                child: Image.network(wallpapers[index], fit: BoxFit.cover),
+              );
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<List<String>> _fetchWallpapers(String query) async {
+    final response = await conn.get<JsonMap>('https://wallpaperhaven.com/api/search?q=$query');
+    final data = response.body!;
+    return (data['wallpapers'] as List).map((wallpaper) => wallpaper['url'] as String).toList();
+  }
+}
+
+class _WallpaperAppState extends State<WallpaperApp> {
   static const List<Widget> _screens = <Widget>[
     PixabayScreen(),
     UnsplashScreen(),
     WallpaperHavenScreen(),
   ];
+  int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _onSearch(String query) {
-    setState(() {
-      _query = query;
-    });
-  }
+  String _query = '';
 
   @override
   Widget build(BuildContext context) {
@@ -64,129 +177,16 @@ class _WallpaperAppState extends State<WallpaperApp> {
       ),
     );
   }
-}
 
-var conn = GetConnect();
-
-class PixabayScreen extends StatelessWidget {
-  const PixabayScreen({super.key});
-
-  Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await conn.get<JsonMap>('https://pixabay.com/api/?key=YOUR_API_KEY&q=$query&image_type=photo');
-    final data = response.body!;
-    return (data['hits'] as List).map((hit) => hit['webformatURL'] as String).toList();
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: _fetchWallpapers(''),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final wallpapers = snapshot.data!;
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-            itemCount: wallpapers.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () async {
-                  final response = await conn.get(wallpapers[index]);
-                  final bytes = (await response.bodyBytes?.toList())!.first;
-                  final base64 = base64Encode(bytes);
-                  //TODO: Handle the base64 string as needed
-                },
-                child: Image.network(wallpapers[index], fit: BoxFit.cover),
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-}
-
-class UnsplashScreen extends StatelessWidget {
-  const UnsplashScreen({super.key});
-
-  Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await conn.get<JsonMap>('https://api.unsplash.com/search/photos?query=$query&client_id=YOUR_API_KEY');
-    final data = response.body!;
-    return (data['results'] as List).map((result) => result['urls']['small'] as String).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: _fetchWallpapers(''),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final wallpapers = snapshot.data!;
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-            itemCount: wallpapers.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () async {
-                  final response = await conn.get(wallpapers[index]);
-                  final bytes = (await response.bodyBytes?.toList())!.first;
-                  final base64 = base64Encode(bytes);
-                  //TODO: Handle the base64 string as needed
-                },
-                child: Image.network(wallpapers[index], fit: BoxFit.cover),
-              );
-            },
-          );
-        }
-      },
-    );
-  }
-}
-
-class WallpaperHavenScreen extends StatelessWidget {
-  const WallpaperHavenScreen({super.key});
-
-  Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await conn.get<JsonMap>('https://wallpaperhaven.com/api/search?q=$query');
-    final data = response.body!;
-    return (data['wallpapers'] as List).map((wallpaper) => wallpaper['url'] as String).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<String>>(
-      future: _fetchWallpapers(''),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final wallpapers = snapshot.data!;
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-            itemCount: wallpapers.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () async {
-                  final response = await conn.get(wallpapers[index]);
-                  final bytes = (await response.bodyBytes?.toList())!.first;
-                  final base64 = base64Encode(bytes);
-                  print(base64); // Handle the base64 string as needed
-                },
-                child: Image.network(wallpapers[index], fit: BoxFit.cover),
-              );
-            },
-          );
-        }
-      },
-    );
+  void _onSearch(String query) {
+    setState(() {
+      _query = query;
+    });
   }
 }

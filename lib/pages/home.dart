@@ -34,11 +34,64 @@ class _HomePageState extends State<HomePage> {
 
   bool isSearching = false;
 
+  Map<string, Function()> get commands => {
+        "todo": () {
+          //add todo to recent searches
+          var task = getCommandArgs.join(" ");
+          var todo = "[ ] $task";
+          if (recentSearches.contains(todo)) {
+            removeRecentSearch(todo);
+          }
+          addRecentSearch("[ ] $task");
+        },
+        "clearsearch": () {
+          recentSearches = [];
+        },
+        "reload": () {
+          loadApps();
+          loadFiles();
+          loadContacts();
+          Get.forceAppUpdate();
+        },
+        "gosettings": () {
+          Get.to(() => const SettingsScreen());
+        },
+        "gowallpaper": () {
+          Get.to(() => const WallpaperApp());
+        },
+        "setcolor": () {
+          mainColor = getCommandArgs.map((x) => x.asColor).reduce((a, b) => a + b);
+          Get.forceAppUpdate();
+        },
+        "setdarktheme": () {
+          Get.changeThemeMode(ThemeMode.dark);
+          Get.forceAppUpdate();
+        },
+        "setsystemtheme": () {
+          Get.changeThemeMode(ThemeMode.system);
+          Get.forceAppUpdate();
+        },
+        "setlighttheme": () {
+          Get.changeThemeMode(ThemeMode.light);
+          Get.forceAppUpdate();
+        },
+      };
+
   string get dynamicTitle {
     if (query.startsWithAny(tokenList)) {
       return tokens[query.first()]!;
     }
     return loc.search;
+  }
+
+  string get getCommand {
+    if (query.startsWith(">")) return query.removeFirstAny(tokenList).splitArguments.first;
+    return "";
+  }
+
+  Iterable<string> get getCommandArgs {
+    if (query.startsWith(">")) return query.removeFirstAny(tokenList).splitArguments.skip(1);
+    return [];
   }
 
   Iterable<string> get parseMath {
@@ -81,30 +134,6 @@ class _HomePageState extends State<HomePage> {
       return [];
     }
   }
-
-  Map<string, Function(string)> get commands => {
-        "todo": (task) {
-          //add todo to recent searches
-          addRecentSearch("[ ] $task");
-        },
-        "clear": (_) {
-          recentSearches = [];
-        },
-        "reload": (_) {
-          loadApps();
-          loadFiles();
-          loadContacts();
-        },
-        "restart": (_) {
-          Get.forceAppUpdate();
-        },
-        "settings": (_) {
-          Get.to(() => const SettingsScreen());
-        },
-        "wallpaper": (_) {
-          Get.to(() => const WallpaperApp());
-        },
-      };
 
   Iterable<Contact> get searchContacts {
     try {
@@ -191,6 +220,17 @@ class _HomePageState extends State<HomePage> {
                       autofocus: true,
                       focusNode: focusNode,
                       controller: controller,
+                      onFieldSubmitted: (s) {
+                        if (getCommand.isNotBlank) {
+                          var f = commands[getCommand];
+                          if (f != null) {
+                            f();
+                            context.unfocus();
+                          } else {
+                            onFieldSubmitted();
+                          }
+                        }
+                      },
                       onChanged: (value) {
                         setState(() {});
                       },
@@ -484,11 +524,12 @@ class _HomePageState extends State<HomePage> {
                       if (query.startsWith(">"))
                         for (var command in commands.keys)
                           ListTile(
+                            leading: const Icon(Icons.terminal
+                            ),
                             title: Text(command),
                             onTap: () {
-                              query = command;
+                              query = ">$command";
                               setState(() {});
-                              context.unfocus();
                             },
                           ),
                       if (query.startsWith(":") || !query.startsWithAny(tokenList))

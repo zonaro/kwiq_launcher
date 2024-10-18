@@ -25,7 +25,7 @@ class MyAppMenuScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: FutureAwaiter(
-        future: () async => (await DeviceApps.getApp(packageName, true) as AppInfo),
+        future: () async => (await DeviceApps.getApp(packageName, true) as ApplicationWithIcon),
         builder: (app) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
