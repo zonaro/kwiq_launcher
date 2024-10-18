@@ -191,7 +191,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ResponsiveSizer(builder: (context, orientation, screenType) {
         return GetMaterialApp(
-          themeMode: ThemeMode.system,
+          themeMode: themeMode,
           theme: ThemeData.from(colorScheme: ColorScheme.light(primary: mainColor)),
           darkTheme: ThemeData.from(colorScheme: ColorScheme.dark(primary: mainColor)),
           locale: Get.deviceLocale,
