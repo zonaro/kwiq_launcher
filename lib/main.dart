@@ -24,6 +24,7 @@ Map<string, string> get tokens => {
       '#': loc.categories,
       '>': loc.files,
       '=': loc.calculate,
+      "--": loc.commands,
     };
 
 late SharedPreferences prefs;

@@ -9,6 +9,7 @@ import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
+import 'package:kwiq_launcher/pages/wallpaper.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:new_device_apps/device_apps.dart';
 import 'package:open_file/open_file.dart';
@@ -69,6 +70,30 @@ class _HomePageState extends State<HomePage> {
       return [];
     }
   }
+
+  Map<string, Function(string)> get commands => {
+        "todo": (task) {
+          //add todo to recent searches
+          addRecentSearch("[ ] $task");
+        },
+        "clear": (_) {
+          recentSearches = [];
+        },
+        "reload": (_) {
+          loadApps();
+          loadFiles();
+          loadContacts();
+        },
+        "restart": (_) {
+          Get.forceAppUpdate();
+        },
+        "settings": (_) {
+          Get.to(() => const SettingsScreen());
+        },
+        "wallpaper": (_) {
+          Get.to(() => const WallpaperApp());
+        },
+      };
 
   Iterable<Contact> get searchContacts {
     try {
@@ -308,24 +333,39 @@ class _HomePageState extends State<HomePage> {
                         ),
                       for (var search in recentSearches)
                         ResponsiveColumn.full(
-                          child: ListTile(
-                            title: Text(search),
-                            leading: const Icon(Icons.search),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete_forever),
-                              onPressed: () {
-                                recentSearches = recentSearches.where((x) => x != search).toList();
-                                setState(() {});
-                                Get.forceAppUpdate();
-                              },
-                            ),
-                            onTap: () {
-                              isSearching = true;
-                              query = search;
-                              setState(() {});
-                              Get.forceAppUpdate();
-                            },
-                          ),
+                          child: search.trimAll.startsWithAny(["[ ]", "[x]"])
+                              ? CheckboxListTile(
+                                  value: search.trimAll.startsWith("[x]"),
+                                  onChanged: (b) {
+                                    recentSearches = [...recentSearches.whereNot((x) => x == search)];
+                                    if (b == true) {
+                                      search = search.replaceFirst("[ ]", "[x]");
+                                    } else {
+                                      search = search.replaceFirst("[x]", "[ ]");
+                                    }
+                                    recentSearches = [...recentSearches, search];
+
+                                    setState(() {});
+                                    Get.forceAppUpdate();
+                                  })
+                              : ListTile(
+                                  title: Text(search),
+                                  leading: const Icon(Icons.search),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.delete_forever),
+                                    onPressed: () {
+                                      recentSearches = recentSearches.where((x) => x != search).toList();
+                                      setState(() {});
+                                      Get.forceAppUpdate();
+                                    },
+                                  ),
+                                  onTap: () {
+                                    isSearching = true;
+                                    query = search;
+                                    setState(() {});
+                                    Get.forceAppUpdate();
+                                  },
+                                ),
                         ),
                       Gap(context.height * .12),
                     ],
@@ -474,6 +514,16 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const Divider(),
                       ],
+                      if (query.startsWith("--"))
+                        for (var command in commands.keys)
+                          ListTile(
+                            title: Text(command),
+                            onTap: () {
+                              query = command;
+                              setState(() {});
+                              context.unfocus();
+                            },
+                          ),
                       if (query.startsWith(":") || !query.startsWithAny(tokenList))
                         for (var app in searchApps)
                           AppTile(
@@ -569,30 +619,6 @@ class _HomePageState extends State<HomePage> {
   void spotifySearch() {
     addRecentSearch(query);
     launchUrl(Uri.https('open.spotify.com', '/search/$query'), mode: LaunchMode.externalApplication);
-  }
-
-  List<Widget> suggestionTiles(Iterable<String> suggestions) {
-    return [
-      for (var suggestion in suggestions)
-        ListTile(
-          title: Text(suggestion),
-          leading: const Icon(
-            Icons.text_format,
-          ),
-          trailing: recentSearches.contains(suggestion)
-              ? IconButton(
-                  icon: const Icon(Icons.delete_forever),
-                  onPressed: () {
-                    recentSearches = recentSearches.where((x) => x != suggestion).toList();
-                  })
-              : null,
-          onTap: () {
-            query = suggestion;
-            setState(() {});
-            Get.forceAppUpdate();
-          },
-        ),
-    ];
   }
 
   void whatsAppTo() => launchUrlString('whatsapp://send?phone=$query');
