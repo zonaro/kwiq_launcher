@@ -15,18 +15,21 @@ class _OEmbedViewState extends State<OEmbedView> {
   AwaiterData<OEmbedData> oem = AwaiterData<OEmbedData>(validateData: false, expireDataAfter: 2.seconds);
   @override
   Widget build(BuildContext context) {
-    return FutureAwaiter(
-        data: oem,
-        future: () async {
-          var o = await OEmbed.fromUri(widget.uri);
-          return o;
-        },
-        loading: nil,
-        errorChild: (e) => nil,
-        builder: (data) {
-          controller.loadHtmlString(data.html ?? "<body>NO HTML PROVIDED</body>");
-          return SizedBox(width: data.width?.toDouble(), height: data.height?.toDouble(), child: WebViewWidget(controller: controller));
-        });
+    return Container(
+      constraints: BoxConstraints(maxWidth: context.width, maxHeight: 300),
+      child: FutureAwaiter(
+          data: oem,
+          future: () async {
+            var o = await OEmbed.fromUri(widget.uri);
+            return o;
+          },
+          loading: nil,
+          errorChild: (e) => nil,
+          builder: (data) {
+            controller.loadHtmlString(data.html ?? "<body>NO HTML PROVIDED</body>");
+            return SizedBox(width: data.width?.toDouble(), height: data.height?.toDouble(), child: WebViewWidget(controller: controller));
+          }),
+    );
   }
 
   @override

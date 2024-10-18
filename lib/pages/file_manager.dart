@@ -12,8 +12,6 @@ import 'package:kwiq_launcher/main.dart';
 import 'package:open_file/open_file.dart';
 import 'package:sizer/sizer.dart';
 
-final FilesController fileController = Get.put(FilesController());
-
 class FilePage extends StatefulWidget {
   const FilePage({super.key});
 
@@ -26,11 +24,96 @@ class _FilePageState extends State<FilePage> {
   var isMoving = false;
   var hideDetails = false;
 
+  final FilesController fileController = Get.put(FilesController());
   late FileSystemEntity selectedFile;
 
-  @override
-  void initState() {
-    super.initState();
+  AppBar appBar(BuildContext context) {
+    return AppBar(
+      actions: [
+        Visibility(
+            visible: isMoving,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: () {
+                  selectedFile.rename("${fileController.controller.getCurrentPath}/${FileManager.basename(selectedFile)}");
+                  setState(() {
+                    isMoving = false;
+                  });
+                },
+                child: const Row(
+                  children: [
+                    Text("Move here ", style: TextStyle(fontWeight: FontWeight.w500)),
+                    Icon(Icons.paste),
+                  ],
+                ),
+              ),
+            )),
+        Visibility(
+          visible: !isMoving,
+          child: PopupMenuButton(
+              itemBuilder: (BuildContext context) {
+                return <PopupMenuEntry>[
+                  PopupMenuItem(
+                    value: 'button1',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(
+                          Icons.file_present,
+                          color: orage2,
+                        ),
+                        const Text("New File     "),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'button2',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Icon(Icons.folder_open, color: mainColor),
+                        const Text("New Folder"),
+                      ],
+                    ),
+                  ),
+                ];
+              },
+              onSelected: (value) {
+                switch (value) {
+                  case 'button1':
+                    fileController.createFile(context, fileController.controller.getCurrentPath);
+
+                    break;
+                  case 'button2':
+                    fileController.createFolder(context);
+
+                    break;
+                }
+              },
+              child: const Icon(Icons.create_new_folder_outlined)),
+        ),
+        Visibility(
+          visible: !isMoving,
+          child: IconButton(
+            onPressed: () => fileController.sort(context),
+            icon: const Icon(Icons.sort_rounded),
+          ),
+        ),
+      ],
+      title: const Text("File Manager", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () async {
+          await fileController.controller.goToParentDirectory().then((value) {
+            if (fileController.controller.getCurrentPath == "/storage/emulated/0") {
+              hideDetails = false;
+              setState(() {});
+            }
+          });
+        },
+      ),
+    );
   }
 
   @override
@@ -266,6 +349,11 @@ class _FilePageState extends State<FilePage> {
     );
   }
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> openEntity(FileSystemEntity entity, BuildContext context) async {
     if (FileManager.isDirectory(entity)) {
       try {
@@ -283,94 +371,5 @@ class _FilePageState extends State<FilePage> {
         onError: (e) => fileController.alert(context, "Enable to open this file"),
       );
     }
-  }
-
-  AppBar appBar(BuildContext context) {
-    return AppBar(
-      actions: [
-        Visibility(
-            visible: isMoving,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
-                onTap: () {
-                  selectedFile.rename("${fileController.controller.getCurrentPath}/${FileManager.basename(selectedFile)}");
-                  setState(() {
-                    isMoving = false;
-                  });
-                },
-                child: const Row(
-                  children: [
-                    Text("Move here ", style: TextStyle(fontWeight: FontWeight.w500)),
-                    Icon(Icons.paste),
-                  ],
-                ),
-              ),
-            )),
-        Visibility(
-          visible: !isMoving,
-          child: PopupMenuButton(
-              itemBuilder: (BuildContext context) {
-                return <PopupMenuEntry>[
-                  PopupMenuItem(
-                    value: 'button1',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(
-                          Icons.file_present,
-                          color: orage2,
-                        ),
-                        const Text("New File     "),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'button2',
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Icon(Icons.folder_open, color: mainColor),
-                        const Text("New Folder"),
-                      ],
-                    ),
-                  ),
-                ];
-              },
-              onSelected: (value) {
-                switch (value) {
-                  case 'button1':
-                    fileController.createFile(context, fileController.controller.getCurrentPath);
-
-                    break;
-                  case 'button2':
-                    fileController.createFolder(context);
-
-                    break;
-                }
-              },
-              child: const Icon(Icons.create_new_folder_outlined)),
-        ),
-        Visibility(
-          visible: !isMoving,
-          child: IconButton(
-            onPressed: () => fileController.sort(context),
-            icon: const Icon(Icons.sort_rounded),
-          ),
-        ),
-      ],
-      title: const Text("File Manager", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500)),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () async {
-          await fileController.controller.goToParentDirectory().then((value) {
-            if (fileController.controller.getCurrentPath == "/storage/emulated/0") {
-              hideDetails = false;
-              setState(() {});
-            }
-          });
-        },
-      ),
-    );
   }
 }

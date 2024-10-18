@@ -11,6 +11,7 @@ import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
 import 'package:kwiq_launcher/components/oembed.dart';
 import 'package:kwiq_launcher/main.dart';
+import 'package:kwiq_launcher/pages/file_manager.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:kwiq_launcher/pages/wallpaper.dart';
 import 'package:math_expressions/math_expressions.dart';
@@ -222,15 +223,39 @@ class _HomePageState extends State<HomePage> {
                       focusNode: focusNode,
                       controller: controller,
                       onFieldSubmitted: (s) {
+                        onFieldSubmitted();
+                        if (query.isPhoneNumber) {
+                          callNumber();
+                          return;
+                        }
+                        if (query.isURL) {
+                          openUrl();
+                          return;
+                        }
                         if (getCommand.isNotBlank) {
                           var f = commands[getCommand];
                           if (f != null) {
                             f();
                             context.unfocus();
-                          } else {
-                            onFieldSubmitted();
+                            query = "";
                           }
+                          return;
                         }
+                        if (queryIsSingleApplication(query)) {
+                          DeviceApps.openApp(searchApps.first.packageName);
+                          return;
+                        }
+                        if (queryIsSingleContact(query)) {
+                          FlutterContacts.openExternalView(searchContacts.first.id);
+                          return;
+                        }
+                        if (query.startsWith("=")) {
+                          query = "=${parseMath.first}";
+                          setState(() {});
+                          return;
+                        }
+
+                        googleSearch();
                       },
                       onChanged: (value) {
                         setState(() {});
@@ -261,13 +286,13 @@ class _HomePageState extends State<HomePage> {
                 )
               : const DigitalClock(),
           actions: [
-            if (!isSearching)
+            if (!isSearching) ...[
+              IconButton(onPressed: () => Get.to(() => const FilePage()), icon: const Icon(Icons.folder)),
               IconButton(
                 icon: const Icon(Icons.settings),
-                onPressed: () {
-                  Get.to(() => const SettingsScreen());
-                },
+                onPressed: () => Get.to(() => const SettingsScreen()),
               ),
+            ]
           ],
         ),
         resizeToAvoidBottomInset: true,
@@ -529,7 +554,7 @@ class _HomePageState extends State<HomePage> {
                             leading: const Icon(Icons.terminal),
                             title: Text(command),
                             onTap: () {
-                              query = ">$command";
+                              query = ">$command ";
                               setState(() {});
                             },
                           ),
@@ -708,6 +733,14 @@ class _HomePageState extends State<HomePage> {
   void playStoreSearch() {
     addRecentSearch(query);
     launchUrl(Uri.http('play.google.com', '/store/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
+
+  bool queryIsSingleApplication(string query) {
+    return searchApps.length == 1 && query.isNotBlank && (query.startsWith(":") || (searchContacts.isEmpty && searchFiles.isEmpty));
+  }
+
+  bool queryIsSingleContact(string query) {
+    return searchContacts.length == 1 && query.isNotBlank && (query.startsWith("@") || (searchApps.isEmpty && searchFiles.isEmpty));
   }
 
   Future<Iterable<string>> searchSuggestions() async {
