@@ -66,15 +66,20 @@ class _HomePageState extends State<HomePage> {
           Get.forceAppUpdate();
         },
         "setdarktheme": () {
-          Get.changeThemeMode(ThemeMode.dark);
+                  themeMode = ThemeMode.dark;
+Get.changeThemeMode(themeMode);
           Get.forceAppUpdate();
         },
         "setsystemtheme": () {
-          Get.changeThemeMode(ThemeMode.system);
+          themeMode = ThemeMode.system;
+
+                 Get.changeThemeMode(themeMode);
+
           Get.forceAppUpdate();
         },
         "setlighttheme": () {
-          Get.changeThemeMode(ThemeMode.light);
+          themeMode = ThemeMode.light;
+          Get.changeThemeMode(themeMode);
           Get.forceAppUpdate();
         },
       };
@@ -85,6 +90,9 @@ class _HomePageState extends State<HomePage> {
     }
     return loc.search;
   }
+
+  ThemeMode get themeMode > ThemeMode.values[prefs.getInt("themeMode")??0];
+  set themeMode(ThemeMode value)=>  prefs.setInt("themeMode", value.index);
 
   string get getCommand {
     if (query.startsWith(">")) return query.removeFirstAny(tokenList).splitArguments.first;
@@ -238,6 +246,7 @@ class _HomePageState extends State<HomePage> {
                             f();
                             context.unfocus();
                             query = "";
+                            isSearching = false;
                           }
                           return;
                         }
