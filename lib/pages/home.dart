@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
@@ -18,21 +20,26 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class HomePage extends StatefulWidget {
-  final string query;
-
-  const HomePage({super.key, this.query = ''});
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  string get query => queryController.text;
-  set query(string value) => queryController.text = value;
   TextEditingController queryController = TextEditingController();
   FocusNode queryFocusNode = FocusNode();
-
   TextInputType inputType = TextInputType.text;
+  final loc = Get.context!.innerLibsLocalizations;
+
+  bool isSearching = false;
+
+  string get dynamicTitle {
+    if (query.startsWithAny(tokenList)) {
+      return tokens[query.first()]!;
+    }
+    return loc.search;
+  }
 
   Iterable<string> get parseMath {
     var mathExp = query.removeFirstEqual("=");
@@ -50,6 +57,10 @@ class _HomePageState extends State<HomePage> {
       return [];
     }
   }
+
+  string get query => queryController.text;
+
+  set query(string value) => queryController.text = value;
 
   Iterable<AppInfo> get searchApps {
     try {
@@ -144,58 +155,14 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<Iterable<string>> searchSuggestions() async {
-    return [...recentSearches, ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""))].distinctFlat();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.query.isNotEmpty) {
-      query = widget.query;
-    }
-  }
-
-  final loc = Get.context!.innerLibsLocalizations;
-
-  bool isSearching = false;
-
-  string groupByMode(dynamic e, string mode) {
-    if (mode == 'alpha') {
-      return e is Contact ? (e).displayName.first() : (e as AppInfo).appName.first();
-    }
-    if (mode == 'category') {
-      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo)).firstOrNull ?? "Undefined";
-    }
-
-    return "All";
-  }
-
-  StickyGroupedListView groupedListView() => StickyGroupedListView<dynamic, String>(
-        elements: [...starredContacts, ...homeApps],
-        groupBy: (e) => groupByMode(e, "category"),
-        groupSeparatorBuilder: (e) => ListTile(
-          title: Text(groupByMode(e, "category")),
-        ),
-        itemBuilder: (context, element) {
-          if (element is Contact) {
-            return ContactTile(
-              contact: element,
-              gridColumns: 1,
-            );
-          } else {
-            return AppTile(
-              app: element,
-              gridColumns: 1,
-            );
-          }
-        },
-        itemScrollController: GroupedItemScrollController(),
-        order: StickyGroupedListOrder.ASC,
-      );
-
   bool get showAutocomplete => prefs.getBool("showAutocomplete") ?? false;
+
   set showAutocomplete(bool value) => prefs.setBool("showAutocomplete", value);
+
+  void bingSearch() {
+    addRecentSearch(query);
+    launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
 
   @override
   build(BuildContext context) {
@@ -568,23 +535,110 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  string get dynamicTitle {
-    if (query.startsWithAny(tokenList)) {
-      return tokens[query.first()]!;
-    }
-    return loc.search;
-  }
-
-  void bingSearch() {
-    addRecentSearch(query);
-    launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
-  }
-
-  void callNumber() => launchUrlString('tel: $query');
+  void callNumber() async => await FlutterPhoneDirectCaller.callNumber(query);
 
   void googleSearch() {
     addRecentSearch(query);
     launchUrl(Uri.http('www.google.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
+
+  string groupByMode(dynamic e, string mode) {
+    if (mode == 'alpha') {
+      return e is Contact ? (e).displayName.first() : (e as AppInfo).appName.first();
+    }
+    if (mode == 'category') {
+      return e is Contact ? "Contacts" : getCategoriesOf((e as AppInfo)).firstOrNull ?? "Undefined";
+    }
+
+    return "All";
+  }
+
+  StickyGroupedListView groupedListView() => StickyGroupedListView<dynamic, String>(
+        elements: [...starredContacts, ...homeApps],
+        groupBy: (e) => groupByMode(e, "category"),
+        groupSeparatorBuilder: (e) => ListTile(
+          title: Text(groupByMode(e, "category")),
+        ),
+        itemBuilder: (context, element) {
+          if (element is Contact) {
+            return ContactTile(
+              contact: element,
+              gridColumns: 1,
+            );
+          } else {
+            return AppTile(
+              app: element,
+              gridColumns: 1,
+            );
+          }
+        },
+        itemScrollController: GroupedItemScrollController(),
+        order: StickyGroupedListOrder.ASC,
+      );
+
+  @override
+  void initState() {
+    super.initState();
+
+    HardwareKeyboard.instance.addHandler((event) {
+      if (event is KeyDownEvent) {
+        if (event.isKeyPressed(LogicalKeyboardKey.escape)) {
+          isSearching = false;
+          context.unfocus();
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyF) || event.isKeyPressed(LogicalKeyboardKey.f2) || event.isMeta(LogicalKeyboardKey.space)) {
+          isSearching = !isSearching;
+          setState(() {});
+          if (isSearching) queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.semicolon) || event.isControl(LogicalKeyboardKey.keyQ)) {
+          isSearching = true;
+          query = ":";
+          setState(() {});
+          queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.at) || event.isControl(LogicalKeyboardKey.keyP)) {
+          isSearching = true;
+          query = "@";
+          setState(() {});
+          queryFocusNode.requestFocus();
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyB) || event.isKeyPressed(LogicalKeyboardKey.launchWebBrowser) || event.isKeyPressed(LogicalKeyboardKey.browserSearch)) {
+          isSearching = true;
+          query = "http://";
+          queryFocusNode.requestFocus();
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.add) || event.isControl(LogicalKeyboardKey.keyM)) {
+          isSearching = true;
+          query = "=";
+          queryFocusNode.requestFocus();
+          setState(() {});
+          return true;
+        } else if (event.isKeyPressed(LogicalKeyboardKey.f12)) {
+          Get.to(() => const SettingsScreen());
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyG)) {
+          isSearching = true;
+          query = "#";
+          setState(() {});
+          return true;
+        } else if (event.isControlAlt(LogicalKeyboardKey.keyF)) {
+          isSearching = true;
+          query = ">"; // Files
+          setState(() {});
+          return true;
+        } else if (event.isControl(LogicalKeyboardKey.keyI)) {
+          showAutocomplete = !showAutocomplete;
+          setState(() {});
+          return true;
+        }
+      }
+
+      return false;
+    });
   }
 
   void instagramOpen() => launchUrl(Uri.http('instagram.com', '/${query.toSnakeCase}'), mode: LaunchMode.externalApplication);
@@ -612,6 +666,10 @@ class _HomePageState extends State<HomePage> {
   void playStoreSearch() {
     addRecentSearch(query);
     launchUrl(Uri.http('play.google.com', '/store/search', {'q': query}), mode: LaunchMode.externalApplication);
+  }
+
+  Future<Iterable<string>> searchSuggestions() async {
+    return [...recentSearches, ...(await query.fetchGoogleSuggestions(language: Get.locale?.languageCode ?? ""))].distinctFlat();
   }
 
   void smsTo() => launchUrlString('sms:$query');

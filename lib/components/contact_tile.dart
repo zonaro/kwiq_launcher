@@ -1,20 +1,23 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:icons_plus/icons_plus.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:kwiq_launcher/main.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class ContactTile extends StatefulWidget {
+  final Contact contact;
+
+  final int gridColumns;
+  final bool showLabel;
   const ContactTile({
     super.key,
     required this.contact,
     required this.gridColumns,
     this.showLabel = true,
   });
-
-  final Contact contact;
-  final int gridColumns;
-  final bool showLabel;
 
   @override
   createState() => _ContactTileState();
@@ -39,7 +42,9 @@ class _ContactTileState extends State<ContactTile> {
       child: Builder(builder: (context) {
         var pic = widget.contact.photo ?? widget.contact.thumbnail;
         var namePart = widget.contact.displayName.pascalSplitString.getWords.map((x) => x.first(1)).take(3).join("").toUpperCase();
-        var phone = widget.contact.phones.firstWhereOrNull((x) => x.isPrimary)?.number ?? widget.contact.phones.firstOrDefault()?.number ?? widget.contact.emails.firstWhereOrNull((x) => x.isPrimary)?.address ?? widget.contact.emails.firstOrDefault()?.address;
+        var phone = (widget.contact.phones.firstWhereOrNull((x) => x.isPrimary)?.number ?? widget.contact.phones.firstOrDefault()?.number)?.removeLetters.removeAllWhitespace ??
+            widget.contact.emails.firstWhereOrNull((x) => x.isPrimary)?.address ??
+            widget.contact.emails.firstOrDefault()?.address;
         if (widget.gridColumns > 1) {
           var children = [
             CircleAvatar(
@@ -71,6 +76,25 @@ class _ContactTileState extends State<ContactTile> {
             ),
             title: Text(widget.contact.displayName),
             subtitle: phone?.asText(),
+            trailing: Wrap(
+              children: [
+                if (hasWhatsapp && phone != null && phone.isPhoneNumber)
+                  IconButton(
+                    icon: Brand(Brands.whatsapp),
+                    onPressed: () => launchUrlString('whatsapp://send?phone=$phone'),
+                  ),
+                if (phone != null && phone.isPhoneNumber)
+                  IconButton(
+                    icon: const Icon(Icons.phone),
+                    onPressed: () async => await FlutterPhoneDirectCaller.callNumber(phone),
+                  )
+                else if (phone != null && phone.isEmail)
+                  IconButton(
+                    icon: const Icon(Icons.email),
+                    onPressed: () => launchUrlString('mailto:$phone'),
+                  )
+              ],
+            ),
           );
         }
       }),
