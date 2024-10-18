@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
 
       return files
           .search(
-            searchTerms: query.removeFirstEqual(">"),
+            searchTerms: query.removeFirstEqual("/"),
             searchOn: (file) => [
               file.name,
               file.lastModifiedSync().format(),
@@ -481,7 +481,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const Divider(),
                       ],
-                      if (query.startsWith("--"))
+                      if (query.startsWith(">"))
                         for (var command in commands.keys)
                           ListTile(
                             title: Text(command),
@@ -514,7 +514,7 @@ class _HomePageState extends State<HomePage> {
                             contact: contact,
                             gridColumns: 1,
                           ),
-                      if (query.startsWith(">") || !query.startsWithAny(tokenList))
+                      if (query.startsWith("/") || !query.startsWithAny(tokenList))
                         for (var file in searchFiles)
                           ListTile(
                             title: Text(file.name | file.fileNameWithoutExtension | file.path),
@@ -627,7 +627,7 @@ class _HomePageState extends State<HomePage> {
           return true;
         } else if (event.isControlAlt(LogicalKeyboardKey.keyF)) {
           isSearching = true;
-          query = ">"; // Files
+          query = "/"; // Files
           setState(() {});
           return true;
         } else if (event.isControl(LogicalKeyboardKey.keyI)) {

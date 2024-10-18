@@ -1,16 +1,13 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
-void main() => runApp(MyApp());
+import 'package:innerlibs/innerlibs.dart';
 
 class WallpaperApp extends StatefulWidget {
   const WallpaperApp({super.key});
 
   @override
-  _WallpaperAppState createState() => _WallpaperAppState();
+  createState() => _WallpaperAppState();
 }
 
 class _WallpaperAppState extends State<WallpaperApp> {
@@ -69,12 +66,14 @@ class _WallpaperAppState extends State<WallpaperApp> {
   }
 }
 
+var conn = GetConnect();
+
 class PixabayScreen extends StatelessWidget {
   const PixabayScreen({super.key});
 
   Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await http.get(Uri.parse('https://pixabay.com/api/?key=YOUR_API_KEY&q=$query&image_type=photo'));
-    final data = json.decode(response.body);
+    final response = await conn.get<JsonMap>('https://pixabay.com/api/?key=YOUR_API_KEY&q=$query&image_type=photo');
+    final data = response.body!;
     return (data['hits'] as List).map((hit) => hit['webformatURL'] as String).toList();
   }
 
@@ -95,10 +94,10 @@ class PixabayScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () async {
-                  final response = await http.get(Uri.parse(wallpapers[index]));
-                  final bytes = response.bodyBytes;
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
                   final base64 = base64Encode(bytes);
-                  print(base64); // Handle the base64 string as needed
+                  //TODO: Handle the base64 string as needed
                 },
                 child: Image.network(wallpapers[index], fit: BoxFit.cover),
               );
@@ -114,8 +113,8 @@ class UnsplashScreen extends StatelessWidget {
   const UnsplashScreen({super.key});
 
   Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await http.get(Uri.parse('https://api.unsplash.com/search/photos?query=$query&client_id=YOUR_API_KEY'));
-    final data = json.decode(response.body);
+    final response = await conn.get<JsonMap>('https://api.unsplash.com/search/photos?query=$query&client_id=YOUR_API_KEY');
+    final data = response.body!;
     return (data['results'] as List).map((result) => result['urls']['small'] as String).toList();
   }
 
@@ -136,10 +135,10 @@ class UnsplashScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () async {
-                  final response = await http.get(Uri.parse(wallpapers[index]));
-                  final bytes = response.bodyBytes;
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
                   final base64 = base64Encode(bytes);
-                  print(base64); // Handle the base64 string as needed
+                  //TODO: Handle the base64 string as needed
                 },
                 child: Image.network(wallpapers[index], fit: BoxFit.cover),
               );
@@ -155,8 +154,8 @@ class WallpaperHavenScreen extends StatelessWidget {
   const WallpaperHavenScreen({super.key});
 
   Future<List<String>> _fetchWallpapers(String query) async {
-    final response = await http.get(Uri.parse('https://wallpaperhaven.com/api/search?q=$query'));
-    final data = json.decode(response.body);
+    final response = await conn.get<JsonMap>('https://wallpaperhaven.com/api/search?q=$query');
+    final data = response.body!;
     return (data['wallpapers'] as List).map((wallpaper) => wallpaper['url'] as String).toList();
   }
 
@@ -177,8 +176,8 @@ class WallpaperHavenScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () async {
-                  final response = await http.get(Uri.parse(wallpapers[index]));
-                  final bytes = response.bodyBytes;
+                  final response = await conn.get(wallpapers[index]);
+                  final bytes = (await response.bodyBytes?.toList())!.first;
                   final base64 = base64Encode(bytes);
                   print(base64); // Handle the base64 string as needed
                 },

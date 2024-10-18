@@ -76,14 +76,7 @@ Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.acce
 
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
-Iterable<string> get recentSearches =>
-    prefs
-        .getStringList('recentSearches')
-        ?.map((s) => s.toString())
-        .where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName)))
-        .distinctFlat()
-        .toList() ??
-    [];
+Iterable<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList() ?? [];
 set recentSearches(Iterable<String> value) => prefs.setStringList('recentSearches', value.distinctFlat().toList());
 Iterable<Contact> get starredContacts => contacts.where((contact) => contact.isStarred);
 
@@ -92,8 +85,9 @@ Map<string, string> get tokens => {
       ':': loc.apps,
       '@': loc.contacts,
       '#': loc.categories,
-      '>': loc.files,
+      '>': loc.commands,
       '=': loc.calculate,
+      '/': loc.files,
     };
 Iterable<AppInfo> get visibleApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName);
 
