@@ -9,6 +9,7 @@ import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
 import 'package:kwiq_launcher/components/digital_clock.dart';
+import 'package:kwiq_launcher/components/oembed.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
 import 'package:kwiq_launcher/pages/wallpaper.dart';
@@ -419,6 +420,7 @@ class _HomePageState extends State<HomePage> {
             : ListView(
                 shrinkWrap: true,
                 children: [
+                      if (query.isURL) OEmbedView(uri: changeTo(query)),
                       if (query.startsWith("="))
                         for (var result in parseMath)
                           ListTile(
@@ -524,8 +526,7 @@ class _HomePageState extends State<HomePage> {
                       if (query.startsWith(">"))
                         for (var command in commands.keys)
                           ListTile(
-                            leading: const Icon(Icons.terminal
-                            ),
+                            leading: const Icon(Icons.terminal),
                             title: Text(command),
                             onTap: () {
                               query = ">$command";

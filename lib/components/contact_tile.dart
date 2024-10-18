@@ -80,7 +80,10 @@ class _ContactTileState extends State<ContactTile> {
               children: [
                 if (hasWhatsapp && phone != null && phone.isPhoneNumber)
                   IconButton(
-                    icon: Brand(Brands.whatsapp),
+                    icon: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Brand(Brands.whatsapp),
+                    ),
                     onPressed: () => launchUrlString('whatsapp://send?phone=$phone'),
                   ),
                 if (phone != null && phone.isPhoneNumber)

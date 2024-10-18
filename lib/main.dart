@@ -18,6 +18,7 @@ void main() async {
   initializeDateFormatting();
 
   prefs = await SharedPreferences.getInstance();
+
   SystemTheme.fallbackColor = NamedColor.redColor;
 
   loadApps().then((_) {
@@ -27,11 +28,6 @@ void main() async {
     Get.forceAppUpdate();
   });
   loadFiles().then((_) {
-    Get.forceAppUpdate();
-  });
-
-  SystemTheme.onChange.listen((event) {
-    mainColor = event.accent;
     Get.forceAppUpdate();
   });
 
