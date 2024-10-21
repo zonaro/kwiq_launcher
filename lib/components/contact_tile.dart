@@ -42,9 +42,7 @@ class _ContactTileState extends State<ContactTile> {
       child: Builder(builder: (context) {
         var pic = widget.contact.photo ?? widget.contact.thumbnail;
         var namePart = widget.contact.displayName.pascalSplitString.getWords.map((x) => x.first(1)).take(3).join("").toUpperCase();
-        var phone = (widget.contact.phones.firstWhereOrNull((x) => x.isPrimary)?.number ?? widget.contact.phones.firstOrDefault()?.number)?.removeLetters.removeAllWhitespace ??
-            widget.contact.emails.firstWhereOrNull((x) => x.isPrimary)?.address ??
-            widget.contact.emails.firstOrDefault()?.address;
+        var phone = (widget.contact.phones.firstWhereOrNull((x) => x.isPrimary)?.number ?? widget.contact.phones.firstOrDefault()?.number)?.removeLetters.removeAllWhitespace ?? widget.contact.emails.firstWhereOrNull((x) => x.isPrimary)?.address ?? widget.contact.emails.firstOrDefault()?.address;
         if (widget.gridColumns > 1) {
           var children = [
             CircleAvatar(
@@ -80,9 +78,9 @@ class _ContactTileState extends State<ContactTile> {
               children: [
                 if (hasWhatsapp && phone != null && phone.isPhoneNumber)
                   IconButton(
-                    icon: Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: Brand(Brands.whatsapp),
+                    icon: Brand(
+                      Brands.whatsapp,
+                      size: 10,
                     ),
                     onPressed: () => launchUrlString('whatsapp://send?phone=$phone'),
                   ),
