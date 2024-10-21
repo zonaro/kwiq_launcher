@@ -39,12 +39,11 @@ class _HomePageState extends State<HomePage> {
   Map<string, Function()> get commands => {
         "todo": () {
           //add todo to recent searches
-          var task = getCommandArgs.join(" ");
-          var todo = "[ ] $task";
-          if (recentSearches.contains(todo)) {
-            removeRecentSearch(todo);
+          var todo = getCommandArgs.join(" ");
+          if (todoList.contains(todo)) {
+            addTodo(todo);
           }
-          addRecentSearch("[ ] $task");
+          removeTodo(todo);
         },
         "clearsearch": () {
           recentSearches = [];
@@ -66,14 +65,14 @@ class _HomePageState extends State<HomePage> {
           Get.forceAppUpdate();
         },
         "setdarktheme": () {
-                  themeMode = ThemeMode.dark;
-Get.changeThemeMode(themeMode);
+          themeMode = ThemeMode.dark;
+          Get.changeThemeMode(themeMode);
           Get.forceAppUpdate();
         },
         "setsystemtheme": () {
           themeMode = ThemeMode.system;
 
-                 Get.changeThemeMode(themeMode);
+          Get.changeThemeMode(themeMode);
 
           Get.forceAppUpdate();
         },
@@ -90,9 +89,6 @@ Get.changeThemeMode(themeMode);
     }
     return loc.search;
   }
-
-  ThemeMode get themeMode > ThemeMode.values[prefs.getInt("themeMode")??0];
-  set themeMode(ThemeMode value)=>  prefs.setInt("themeMode", value.index);
 
   string get getCommand {
     if (query.startsWith(">")) return query.removeFirstAny(tokenList).splitArguments.first;
@@ -232,6 +228,9 @@ Get.changeThemeMode(themeMode);
                       controller: controller,
                       onFieldSubmitted: (s) {
                         onFieldSubmitted();
+                        if (s.isBlank) {
+                          context.unfocus();
+                        }
                         if (query.isPhoneNumber) {
                           callNumber();
                           return;
@@ -373,41 +372,41 @@ Get.changeThemeMode(themeMode);
                           app: app,
                           gridColumns: gridColumns,
                         ),
+                      for (var todo in todoList)
+                        ResponsiveColumn.full(
+                          child: CheckboxListTile(
+                              title: Text(todo.removeFirstAny(["[x]", "[ ]"])),
+                              value: todo.startsWith("[x]"),
+                              onChanged: (b) {
+                                setTodo(todo, b);
+                                setState(() {});
+                                Get.forceAppUpdate();
+                              }).onLongPress(() {
+                            removeTodo(todo);
+                            setState(() {});
+                            Get.forceAppUpdate();
+                          })!,
+                        ),
                       for (var search in recentSearches)
                         ResponsiveColumn.full(
-                          child: search.trimAll.startsWithAny(["[ ]", "[x]"])
-                              ? CheckboxListTile(
-                                  value: search.trimAll.startsWith("[x]"),
-                                  onChanged: (b) {
-                                    recentSearches = [...recentSearches.whereNot((x) => x == search)];
-                                    if (b == true) {
-                                      search = search.replaceFirst("[ ]", "[x]");
-                                    } else {
-                                      search = search.replaceFirst("[x]", "[ ]");
-                                    }
-                                    recentSearches = [...recentSearches, search];
-
-                                    setState(() {});
-                                    Get.forceAppUpdate();
-                                  })
-                              : ListTile(
-                                  title: Text(search),
-                                  leading: const Icon(Icons.search),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.delete_forever),
-                                    onPressed: () {
-                                      recentSearches = recentSearches.where((x) => x != search).toList();
-                                      setState(() {});
-                                      Get.forceAppUpdate();
-                                    },
-                                  ),
-                                  onTap: () {
-                                    isSearching = true;
-                                    query = search;
-                                    setState(() {});
-                                    Get.forceAppUpdate();
-                                  },
-                                ),
+                          child: ListTile(
+                            title: Text(search),
+                            leading: const Icon(Icons.search),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_forever),
+                              onPressed: () {
+                                recentSearches = recentSearches.where((x) => x != search).toList();
+                                setState(() {});
+                                Get.forceAppUpdate();
+                              },
+                            ),
+                            onTap: () {
+                              isSearching = true;
+                              query = search;
+                              setState(() {});
+                              Get.forceAppUpdate();
+                            },
+                          ),
                         ),
                       Gap(context.height * .12),
                     ],
@@ -558,7 +557,7 @@ Get.changeThemeMode(themeMode);
                         const Divider(),
                       ],
                       if (query.startsWith(">"))
-                        for (var command in commands.keys)
+                        for (var command in commands.keys.search(searchTerms: query, searchOn: (x) => [x], levenshteinDistance: 2))
                           ListTile(
                             leading: const Icon(Icons.terminal),
                             title: Text(command),

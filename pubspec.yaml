@@ -12,6 +12,7 @@ dependencies:
   new_device_apps : 
   path_provider:
   dashboard:
+  device_calendar:
   path:
   auto_size_text:
   intl:

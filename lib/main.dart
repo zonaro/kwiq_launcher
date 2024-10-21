@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_calendar/device_calendar.dart';
 import 'package:external_path/external_path.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -73,16 +74,11 @@ Color get mainColor => prefs.getString('mainColor')?.asColor ?? SystemTheme.acce
 
 set mainColor(Color value) => prefs.setString('mainColor', value.hexadecimal);
 
-Iterable<string> get recentSearches =>
-    prefs
-        .getStringList('recentSearches')
-        ?.map((s) => s.toString())
-        .where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName)))
-        .distinctFlat()
-        .toList() ??
-    [];
-
+Iterable<string> get recentSearches => prefs.getStringList('recentSearches')?.map((s) => s.toString()).where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat().toList() ?? [];
 set recentSearches(Iterable<String> value) => prefs.setStringList('recentSearches', value.distinctFlat().toList());
+Iterable<string> get todoList => prefs.getStringList('todoList')?.map((s) => s.toString()).distinctFlat().toList() ?? [];
+set todoList(Iterable<String> value) => prefs.setStringList('todoList', value.distinctFlat().toList());
+
 Iterable<Contact> get starredContacts => contacts.where((contact) => contact.isStarred);
 Iterable<string> get tokenList => tokens.keys;
 
@@ -96,8 +92,7 @@ Map<string, string> get tokens => {
     };
 Iterable<ApplicationWithIcon> get visibleApps => apps.where((app) => !hiddenApps.contains(app.packageName)).orderBy((x) => x.appName);
 
-Map<string, Iterable<ApplicationWithIcon>> get visibleAppsByCategory =>
-    Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => getCategoriesOf(app).contains(category)))));
+Map<string, Iterable<ApplicationWithIcon>> get visibleAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => getCategoriesOf(app).contains(category)))));
 
 addCategory(ApplicationWithIcon app, string category) => setCategoriesOf(app, [...getCategoriesOf(app), category]);
 
@@ -105,6 +100,8 @@ Iterable<string> addRecentSearch(String value) {
   recentSearches = [...recentSearches, value].where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.appName))).distinctFlat();
   return recentSearches;
 }
+
+Iterable<string> addTodo(String value) => setTodo(value, false);
 
 Iterable<string> getCategoriesOf(ApplicationWithIcon app) => <string>[
       app.category.name,
@@ -181,7 +178,32 @@ void removeRecentSearch(String value) {
   recentSearches = recentSearches.where((x) => x != value).toList();
 }
 
+void removeTodo(String value) {
+  setTodo(value, null);
+}
+
+Iterable<string> setTodo(string value, bool? checked) {
+  var todo = "[ ] $value".trimAll;
+  var todoDone = "[x] $value".trimAll;
+  todoList = todoList.whereNot((x) => x.flatEqualAny([todo, todoDone])).toList();
+  if (checked != null) {
+    var l = todoList.toList();
+    var indexof = l.indexOf(todo).clampMin(0);
+    if (checked) {
+      l[indexof] = todoDone;
+    } else {
+      l[indexof] = todo;
+    }
+    todoList = l.where((x) => x.isNotEmpty && x.isNotIn(tokenList)).distinctFlat();
+  }
+  return todoList;
+}
+
 setCategoriesOf(ApplicationWithIcon app, Iterable<string> value) => prefs.setStringList('categories::${app.packageName}', value.distinctFlat().toList());
+final DeviceCalendarPlugin deviceCalendarPlugin = DeviceCalendarPlugin();
+
+ThemeMode get themeMode => ThemeMode.values[prefs.getInt("themeMode") ?? 0];
+set themeMode(ThemeMode value) => prefs.setInt("themeMode", value.index);
 
 typedef AppInfo = ApplicationWithIcon;
 
