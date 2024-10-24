@@ -126,78 +126,80 @@ class _FilePageState extends State<FilePage> {
             context.pop();
           }
         },
-        child: FileManager(
-          controller: fileController.controller,
-          builder: (context, snapshot) {
-            fileController.calculateSize(snapshot);
-
-            final List<FileSystemEntity> entities = snapshot.where((element) => element.path != '/storage/emulated/0/Android').toList();
-            return Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Visibility(
-                      visible: !hideDetails,
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-                            child: storagePercentWidget(fileController.deviceTotalSize.toInt(), fileController.deviceAvailableSize.toInt()),
-                          ),
-                          SizedBox(
-                            height: 20.h,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                if (fileController.documentSize > 0) fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder),
-                                if (fileController.videoSize > 0) fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front),
-                                if (fileController.imageSize > 0) fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image),
-                                if (fileController.soundSize > 0) fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music),
-                              ],
+        child: Scaffold(
+          body: FileManager(
+            controller: fileController.controller,
+            builder: (context, snapshot) {
+              fileController.calculateSize(snapshot);
+          
+              final List<FileSystemEntity> entities = snapshot.where((element) => element.path != '/storage/emulated/0/Android').toList();
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Visibility(
+                        visible: !hideDetails,
+                        child: Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+                              child: storagePercentWidget(fileController.deviceTotalSize.toInt(), fileController.deviceAvailableSize.toInt()),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Recent Files",
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                InkWell(
-                                  onTap: () {
-                                    hideDetails = true;
-                                    setState(() {});
-                                  },
-                                  child: Text(
-                                    "See All",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 10.sp,
+                            SizedBox(
+                              height: 20.h,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  if (fileController.documentSize > 0) fileTypeWidget("Document", "${fileController.documentSize.toStringAsFixed(2)} MB", Icons.folder),
+                                  if (fileController.videoSize > 0) fileTypeWidget("Videos", "${fileController.videoSize.toStringAsFixed(2)} MB", Icons.video_camera_front),
+                                  if (fileController.imageSize > 0) fileTypeWidget("Images", "${fileController.imageSize.toStringAsFixed(2)} MB", Icons.image),
+                                  if (fileController.soundSize > 0) fileTypeWidget("Music", "${fileController.soundSize.toStringAsFixed(2)} MB", Icons.library_music),
+                                ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Recent Files",
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w600,
+                                      )),
+                                  InkWell(
+                                    onTap: () {
+                                      hideDetails = true;
+                                      setState(() {});
+                                    },
+                                    child: Text(
+                                      "See All",
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 10.sp,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              ],
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      )),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
-                      itemCount: entities.length,
-                      itemBuilder: (context, index) {
-                        FileSystemEntity entity = entities[index];
-                        return fileTile(entity, context);
-                      },
+                          ],
+                        )),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
+                        itemCount: entities.length,
+                        itemBuilder: (context, index) {
+                          FileSystemEntity entity = entities[index];
+                          return fileTile(entity, context);
+                        },
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            );
-          },
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

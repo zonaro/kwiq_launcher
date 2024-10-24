@@ -41,6 +41,8 @@ dependencies:
   webview_flutter:
   innerlibs:
     path: ../innerlibs_dart
+  xbox_ui:
+    path: ../xbox_ui
 
 dev_dependencies:
   flutter_test:
