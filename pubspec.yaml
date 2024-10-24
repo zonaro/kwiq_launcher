@@ -38,7 +38,8 @@ dependencies:
   external_path:
   math_expressions:
   flutter_phone_direct_caller :
-  webview_flutter:
+  device_orientation :
+  device_info_plus:
   innerlibs:
     path: ../innerlibs_dart
   xbox_ui:
