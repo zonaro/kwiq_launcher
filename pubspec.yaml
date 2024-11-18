@@ -1,0 +1,77 @@
+name: kwiq_launcher
+description: "A modern launcher to replace your current home screen"
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.4.3 <4.0.0'
+
+
+  
+
+dependencies:
+  flutter:
+    sdk: flutter   
+  new_device_apps : 
+  wikipedia:
+  path_provider:
+  dashboard:
+  device_calendar:
+  pixabay_picker:
+  path:
+  auto_size_text:
+  intl: 
+  access_wallpaper :
+  url_launcher:
+  flutter_contacts:
+  system_theme:
+  flutter_local_notifications:
+  file_manager:
+  permission_handler:
+  open_file:
+  package_info_plus:
+  flutter_storage_info:
+  percent_indicator:  
+  app_settings :
+  flutter_colorpicker :  
+  sticky_grouped_list :
+  restart_app :
+  icons_plus :
+  external_path:
+  math_expressions:
+  flutter_phone_direct_caller :
+  device_orientation :
+  device_info_plus:
+  watcher:
+  share_plus: 
+  flutter_fullscreen : 
+  file_picker:
+  audioplayers:
+  photo_view:
+  image_size_getter: 
+
+  wallhaven_cc:
+    path: ../wallpaperhaven_cc
+  innerlibs:
+    path: ../innerlibs_dart
+  xbox_ui:
+    path: ../xbox_ui
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/kwiq.png
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/kwiq.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+ 
