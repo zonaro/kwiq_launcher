@@ -19,7 +19,7 @@ Widget fileTypeWidget(String type, String size, IconData icon) {
             height: Get.height * .2,
             width: Get.width * .4,
             decoration: BoxDecoration(
-              color: color == orange ? orange.withOpacity(0.8) : color,
+              color: color == orange ? orange.withValues(alpha: 0.8) : color,
               borderRadius: BorderRadius.circular(26),
             ),
             child: Padding(
@@ -35,7 +35,7 @@ Widget fileTypeWidget(String type, String size, IconData icon) {
                       )),
                   Text(size,
                       style: TextStyle(
-                        color: color == orange ? Colors.black.withOpacity(0.5) : Colors.grey,
+                        color: color == orange ? Colors.black.withValues(alpha: 0.5) : Colors.grey,
                         fontWeight: FontWeight.w500,
                       )),
                 ],
@@ -93,7 +93,7 @@ Widget storagePercentWidget(int totalStorage, int usedStorage) => Container(
             lineWidth: 5.0,
             percent: usedStorage / totalStorage,
             progressColor: kwiqConfig.currentColor,
-            backgroundColor: kwiqConfig.currentColor.withOpacity(0.2),
+            backgroundColor: kwiqConfig.currentColor.withValues(alpha: 0.2),
           )
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/models/kwiq_config.dart';
 import 'package:new_device_apps/device_apps.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:xbox_ui/xbox_internal_page.dart';
 import 'package:xbox_ui/xbox_ui.dart';
 
@@ -73,7 +74,18 @@ class _XboxScreenState extends State<XboxScreen> {
     return XboxDashboard(
       username: username,
       userdetail: detail,
-      topBarItens: const [],
+      topBarItens: [
+        XboxMenuItem(
+          icon: Icons.cloud,
+          onTap: () => launchUrlString("http://xbox.ccom/play"),
+          title: "Cloud Gaming",
+        ),
+        XboxMenuItem(
+          icon: Icons.settings,
+          onTap: () => DeviceApps.openApp("com.android.settings"),
+          title: loc.settings,
+        ),
+      ],
       menu: const XboxMenu(
         items: [
           ListTile(title: Text("First")),

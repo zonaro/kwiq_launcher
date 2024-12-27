@@ -19,7 +19,6 @@ dependencies:
   device_calendar:
   pixabay_picker:
   path:
-  auto_size_text:
   intl: 
   access_wallpaper :
   url_launcher:
@@ -49,6 +48,14 @@ dependencies:
   audioplayers:
   photo_view:
   image_size_getter: 
+  provider:    
+  device_info: 
+ 
+#  thumbnails: ^1.0.1
+  
+  fluttertoast:   
+  video_player:  
+  isolate_handler:  
 
   wallhaven_cc:
     path: ../wallpaperhaven_cc

@@ -57,16 +57,14 @@ class _AnimatedImageListState extends State<AnimatedImageList> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity,
-      height: double.infinity,
+      width: context.width,
+      height: context.height,
       child: AnimatedSwitcher(
         duration: widget.fade,
         child: Image(
           key: ValueKey(currentIndex),
           image: widget.images[currentIndex],
           fit: BoxFit.cover,
-          width: double.infinity,
-          height: double.infinity,
         ),
       ),
     );
@@ -94,7 +92,7 @@ class _MyWallpapersScreenState extends State<MyWallpapersScreen> {
   AwaiterData<List<File>> walls = AwaiterData();
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery.sizeOf(context);
     final aspectRatio = size.width / size.height;
 
     return Scaffold(
@@ -166,7 +164,7 @@ class _MyWallpapersScreenState extends State<MyWallpapersScreen> {
                     Center(
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Padding(
@@ -286,7 +284,7 @@ class _WallpaperPreviewScreenState extends State<WallpaperPreviewScreen> {
       ),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: context.colorScheme.surface.withOpacity(0.5),
+          backgroundColor: context.colorScheme.surface.withValues(alpha: 0.5),
           title: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.start,

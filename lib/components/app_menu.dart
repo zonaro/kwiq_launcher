@@ -49,7 +49,7 @@ class MyAppMenuScreen extends StatelessWidget {
                         fit: BoxFit.contain,
                         alignment: Alignment.topCenter,
                         colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.1),
+                          Colors.black.withValues(alpha: 0.1),
                           BlendMode.dstATop,
                         ),
                       ),

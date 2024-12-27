@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_menu.dart';

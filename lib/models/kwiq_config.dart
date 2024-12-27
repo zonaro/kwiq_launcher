@@ -55,6 +55,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
 
   /// Obtém ou define a cor de destaque.
   Color get accentColor => getValueFromNode('accentColor', (x) => x.asColor) ?? NamedColors.redBrown;
+
   set accentColor(Color value) => setValueForNode('accentColor', value.hexadecimal);
 
   /// Obtém ou define os aplicativos configurados.
@@ -73,6 +74,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
 
   /// Obtém ou define o formato de data e hora.
   String get dateTimeFormat => getValueFromNode('dateTimeFormat') ?? 'HH:mm:ss';
+
   set dateTimeFormat(String value) => setValueForNode('dateTimeFormat', value);
 
   /// Obtém ou define o tempo de debounce.
@@ -106,6 +108,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
 
   /// Obtém ou define os aplicativos ocultos.
   Iterable<KwiqAppConfig> get hiddenApps => apps.where((x) => x.isHidden);
+
   set hiddenApps(Iterable<KwiqAppConfig> value) {
     for (var app in apps) {
       app = getAppConfig(app.packageName);
@@ -121,6 +124,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
 
   /// Obtém ou define o número máximo de resultados.
   int get maxResults => getValueFromNode('maxResults') ?? 5;
+
   set maxResults(int value) => setValueForNode('maxResults', value);
 
   /// Obtém ou define o número mínimo de caracteres.
@@ -138,6 +142,12 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
   /// Obtém ou define as pesquisas recentes.
   Iterable<String> get recentSearches => getValueFromNode<Iterable<string>>('recentSearches')?.where((x) => x.isNotEmpty && x.isNotIn(tokenList) && !x.flatEqualAny(hiddenApps) && !x.flatEqualAny(apps.map((m) => m.packageName))).distinctFlat().toList() ?? [];
   set recentSearches(Iterable<String> value) => setValueForNode('recentSearches', value.distinctFlat().toList());
+
+  bool get showHidden => getValueFromNode("showHidden") ?? false;
+  set showHidden(bool value) => setValueForNode("showHidden", value);
+
+  int get sort => getValueFromNode('sort') ?? 0;
+  set sort(int value) => setValueForNode('sort', value);
 
   /// Obtém ou define se o tema segue o papel de parede.
   bool get themeFollowWallpaper => getValueFromNode('themeFollowWallpaper') ?? false;
@@ -166,6 +176,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
 
   /// Obtém ou define o intervalo do fade do papel de parede.
   int get wallpaperInterval => getValueFromNode('wallpaperFadeInterval') ?? 10;
+
   set wallpaperInterval(int value) => setValueForNode('wallpaperFadeInterval', value);
 
   /// Obtém ou define os papéis de parede.
@@ -211,7 +222,7 @@ class KwiqConfig extends TypeTag<KwiqConfig> {
     var cfg = apps.firstWhereOrNull((x) => x.packageName.flatEqual(packageName));
     if (cfg == null) {
       cfg = KwiqAppConfig()..packageName = packageName;
-      apps = [...apps, cfg].whereNotNull().distinctBy((x) => x.packageName.toLowerCase()).toList();
+      apps = [...apps, cfg].nonNulls.distinctBy((x) => x.packageName.toLowerCase()).toList();
       save();
     }
     return cfg;
@@ -473,6 +484,7 @@ class WallpaperConfig extends TypeTag<WallpaperConfig> {
 
   /// Obtém se a imagem do papel de parede é retrato.
   bool get imageIsPortrait => imageSize.width < imageSize.height;
+
   /// Obtém o tamanho da imagem do papel de parede.
   Size get imageSize => ImageSizeGetter.getSize(FileInput(file));
 

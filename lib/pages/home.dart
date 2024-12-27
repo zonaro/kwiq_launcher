@@ -13,9 +13,9 @@ import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/components/app_menu.dart';
 import 'package:kwiq_launcher/components/app_tile.dart';
 import 'package:kwiq_launcher/components/contact_tile.dart';
+import 'package:kwiq_launcher/filex/screens/browse/browse.dart';
 import 'package:kwiq_launcher/main.dart';
 import 'package:kwiq_launcher/models/kwiq_config.dart';
-import 'package:kwiq_launcher/pages/file_manager.dart';
 import 'package:kwiq_launcher/pages/game_dashboard.dart';
 import 'package:kwiq_launcher/pages/my_wallpapers.dart';
 import 'package:kwiq_launcher/pages/settings.dart';
@@ -33,7 +33,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin<HomePage> {
   final FocusNode queryFocusNode = FocusNode();
   TextInputType inputType = TextInputType.text;
   final loc = Get.context!.innerLibsLocalizations;
@@ -47,6 +47,8 @@ class _HomePageState extends State<HomePage> {
   bool searchChanged = true;
 
   string query = "";
+
+  PageController pageController = PageController(initialPage: 1);
 
   Map<string, Function()> get commands => {
         "todo": () {
@@ -144,7 +146,7 @@ class _HomePageState extends State<HomePage> {
             searchOn: (app) => [app.appName, app.packageName, ...kwiqConfig.getCategoriesOfApp(app)],
             levenshteinDistance: 2,
             allIfEmpty: true,
-            keyCharSearches: {"#": (search, keyword, item) => kwiqConfig.getCategoriesOfApp(item).contains(search)},
+            // keyCharSearches: {"#": (search, keyword, item) => kwiqConfig.getCategoriesOfApp(item).contains(search)},
             minChars: kwiqConfig.minChars,
             maxResults: kwiqConfig.maxResults,
           )
@@ -217,6 +219,9 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  @override
+  bool get wantKeepAlive => true;
+
   void bingSearch() {
     kwiqConfig.addRecentSearch(query);
     launchUrl(Uri.http('www.bing.com', '/search', {'q': query}), mode: LaunchMode.externalApplication);
@@ -224,6 +229,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   build(BuildContext context) {
+    super.build(context);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -310,12 +316,12 @@ class _HomePageState extends State<HomePage> {
                     BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                       child: Container(
-                        color: context.primaryColor.withOpacity((kwiqConfig.overlayOpacity + .2).clampMax(1)),
+                        color: context.primaryColor.withValues(alpha: (kwiqConfig.overlayOpacity + .2).clampMax(1)),
                       ),
                     )
                   else
                     Container(
-                      color: context.surfaceColor.withOpacity(kwiqConfig.overlayOpacity),
+                      color: context.surfaceColor.withValues(alpha: kwiqConfig.overlayOpacity),
                     ),
                   SafeArea(
                     child: Scaffold(
@@ -388,7 +394,7 @@ class _HomePageState extends State<HomePage> {
                                 decoration: InputDecoration(
                                   border: const OutlineInputBorder(),
                                   label: dynamicTitle.asText(),
-                                  hintStyle: TextStyle(color: context.colorScheme.onSurface.withOpacity(.5)),
+                                  hintStyle: TextStyle(color: context.colorScheme.onSurface.withValues(alpha: .5)),
                                   hintText: kwiqConfig.recentSearches.lastOrNull ?? '${loc.search}...',
                                 ),
                                 keyboardType: inputType,
@@ -410,7 +416,6 @@ class _HomePageState extends State<HomePage> {
                               },
                               icon: Icon(Icons.videogame_asset, color: kwiqConfig.enableGameDashboard ? kwiqConfig.currentColor : null),
                             ),
-                            IconButton(onPressed: () => Get.to(() => const FilePage()), icon: const Icon(Icons.folder)),
                             IconButton(
                               icon: const Icon(Icons.settings),
                               onPressed: () => Get.to(() => const SettingsScreen()),
@@ -500,7 +505,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                       body: !isSearching
                           ? PageView(
+                              controller: pageController,
                               children: [
+                                const FilesPage(),
                                 ResponsiveRow.withColumns(
                                   xxs: kwiqConfig.gridColumns.toDouble(),
                                   children: [
@@ -576,13 +583,13 @@ class _HomePageState extends State<HomePage> {
                                       ).setOpacity(opacity: kwiqConfig.overlayOpacity - .2),
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: kwiqConfig.currentColor.withOpacity((kwiqConfig.overlayOpacity + .1).clamp(0, 1)),
+                                          color: kwiqConfig.currentColor.withValues(alpha: (kwiqConfig.overlayOpacity + .1).clamp(0, 1)),
                                           gradient: LinearGradient(
                                             begin: Alignment.topCenter,
                                             end: Alignment.bottomCenter,
                                             colors: [
                                               Colors.transparent,
-                                              kwiqConfig.currentColor.withOpacity((kwiqConfig.overlayOpacity + .5).clamp(0, 1)),
+                                              kwiqConfig.currentColor.withValues(alpha: (kwiqConfig.overlayOpacity + .5).clamp(0, 1)),
                                             ],
                                           ),
                                         ),

@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:innerlibs/innerlibs.dart';
+import 'package:kwiq_launcher/filex/providers/category_provider.dart';
+import 'package:kwiq_launcher/filex/providers/core_provider.dart';
 import 'package:kwiq_launcher/models/kwiq_config.dart';
 import 'package:kwiq_launcher/pages/home.dart';
 import 'package:kwiq_launcher/pages/my_wallpapers.dart';
@@ -15,6 +17,7 @@ import 'package:new_device_apps/device_apps.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pixabay_picker/pixabay_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:wikipedia/wikipedia.dart';
 
@@ -56,7 +59,17 @@ void main() async {
   SystemTheme.fallbackColor = kwiqConfig.currentColor;
   await SystemTheme.accentColor.load();
 
-  runApp(const MainApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CoreProvider()),
+        ChangeNotifierProvider(create: (_) => CategoryProvider()),
+      ],
+      child: const MainApp(),
+    ),
+  );
+
+  // runApp(const MainApp());
 }
 
 final AccessWallpaper accessWallpaper = AccessWallpaper();
@@ -81,9 +94,9 @@ final Wikipedia wikipedia = Wikipedia();
 
 Iterable<string> get categories => apps.expand((app) => kwiqConfig.getCategoriesOfApp(app)).orderBy((x) => x).map((x) => x.toTitleCase()).distinct();
 
-Iterable<ApplicationWithIcon> get dockedApps => kwiqConfig.dockedApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).whereNotNull().orderBy((x) => x.appName);
+Iterable<ApplicationWithIcon> get dockedApps => kwiqConfig.dockedApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).nonNulls.orderBy((x) => x.appName);
 
-Iterable<ApplicationWithIcon> get favoriteApps => kwiqConfig.favoriteApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).whereNotNull().orderBy((x) => x.appName);
+Iterable<ApplicationWithIcon> get favoriteApps => kwiqConfig.favoriteApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).nonNulls.orderBy((x) => x.appName);
 
 Directory get gamesDir => Directory("${appDir.path}/Games/".fixPath);
 
@@ -92,7 +105,7 @@ Directory get gamesWallDir => Directory("${appDir.path}/Scrap/Games/".fixPath);
 bool get hasSpotify => apps.map((x) => x.packageName).containsAny(['com.spotify.music', 'com.spotify.lite', "com.spotify.tv.android"]);
 bool get hasWhatsapp => apps.map((x) => x.packageName).containsAny(['com.whatsapp', 'com.whatsapp.w4b']);
 
-Iterable<ApplicationWithIcon> get hiddenApps => kwiqConfig.hiddenApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).whereNotNull().orderBy((x) => x.appName);
+Iterable<ApplicationWithIcon> get hiddenApps => kwiqConfig.hiddenApps.map((x) => apps.firstWhereOrNull((y) => x.packageName.flatEqual(y.packageName))).nonNulls.orderBy((x) => x.appName);
 
 Directory get musicWallDir => Directory("${appDir.path}/Scrap/Music/".fixPath);
 
@@ -111,7 +124,7 @@ Map<string, string> get tokens => {
 
 Iterable<ApplicationWithIcon> get visibleApps => apps.whereNot((app) => hiddenApps.contains(app));
 
-Map<string, Iterable<ApplicationWithIcon>> get visibleAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => kwiqConfig.getCategoriesOfApp(app).contains(category)))));
+Map<string, Iterable<ApplicationWithIcon>> get visibleAppsByCategory => Map.fromEntries(categories.map((category) => MapEntry(category, visibleApps.where((app) => kwiqConfig.getCategoriesOfApp(app).flatContains(category)))));
 
 Future<Iterable<File>> get wallpaperFiles async => (await wallpaperDir.listFilesRecursive).where((file) => file.fileExtensionWithoutDot.isIn(['jpg', 'jpeg', 'png']));
 
@@ -142,20 +155,20 @@ Future<Set<Contact>> loadContacts() async {
   return contacts;
 }
 
-Future<Iterable<File>> loadFiles([Directory? dir, bool showHidden = false]) async {
+Future<Iterable<File>> loadFiles([Directory? dir]) async {
   PermissionStatus permissionResult = await Permission.manageExternalStorage.request();
   if (permissionResult == PermissionStatus.granted) {
     var paths = (await ExternalPath.getExternalStorageDirectories()).map((x) => Directory(x.fixPath));
     if (dir == null) {
       for (var path in paths) {
         try {
-          files.addAll(await loadFiles(path, showHidden));
+          files.addAll(await loadFiles(path));
         } finally {}
       }
     } else {
       for (var entry in await dir.listAll) {
         try {
-          if (showHidden == false && entry.path.split('/').last.startsWith('.')) {
+          if (kwiqConfig.showHidden == false && entry.path.split('/').last.startsWith('.')) {
             continue;
           }
           if (entry is File) {
@@ -164,8 +177,7 @@ Future<Iterable<File>> loadFiles([Directory? dir, bool showHidden = false]) asyn
             if (entry.path.containsAny(paths.map((p) => '${p.path}/Android'))) {
               continue;
             }
-
-            var subfiles = await loadFiles(entry, showHidden);
+            var subfiles = await loadFiles(entry);
             try {
               files.addAll(subfiles);
             } finally {}
@@ -185,8 +197,8 @@ Future<Iterable<File>> loadFiles([Directory? dir, bool showHidden = false]) asyn
 }
 
 void saveLocalWallpaper() async {
-  Uint8List? wallpaperBytes = await accessWallpaper.getWallpaper(AccessWallpaper.homeScreenFlag);
-  if (wallpaperBytes != null && wallpaperBytes.isNotEmpty) {
+  Uint8List? wallpaperBytes = (await accessWallpaper.getWallpaper(AccessWallpaper.homeScreenFlag)) ?? Uint8List(0);
+  if (wallpaperBytes.isNotEmpty) {
     wallpaperDir.createSync(recursive: true);
 
     var f = await File("${wallpaperDir.path}/default.jpg".fixPath).writeAsBytes(wallpaperBytes);
