@@ -57,20 +57,14 @@ class _CategoriesSection extends StatelessWidget {
             if (index == Constants.categories.length - 1) {
               // Check if the user has whatsapp installed
               if (Directory(FileUtils.waPath).existsSync()) {
-                Navigate.pushPage(
-                  context,
-                  WhatsappStatus(title: '${category['title']}'),
-                );
+                Get.to(() => WhatsappStatus(title: '${category['title']}'));
               } else {
                 context.showSnackBar('Please Install WhatsApp to use this feature');
               }
             } else if (index == 0) {
-              Navigate.pushPage(context, Downloads(title: '${category['title']}'));
+              Get.to(() => Downloads(title: '${category['title']}'));
             } else {
-              Navigate.pushPage(
-                context,
-                index == 1 || index == 2 ? Images(title: '${category['title']}') : Category(title: '${category['title']}'),
-              );
+              Get.to(() => index == 1 || index == 2 ? Images(title: '${category['title']}') : Category(title: '${category['title']}'));
             }
           },
           contentPadding: const EdgeInsets.all(0),

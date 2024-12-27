@@ -207,7 +207,7 @@ class CategoryProvider extends ChangeNotifier {
         ff.add(file);
       }
 
-      if (file.mimeTypeType == type) {
+      if (file.mimeTypeType.flatEqual(type)) {
         ff.add(file);
         ffTabs.add(file.directoryName ?? Get.context!.translations.unknown);
         // ffTabs.add(file.path.split('/')[file.path.split('/').length - 2]);

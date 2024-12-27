@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/filex/providers/category_provider.dart';
 import 'package:kwiq_launcher/filex/screens/folder/folder.dart';
 import 'package:kwiq_launcher/filex/utils/utils.dart';
@@ -75,10 +76,7 @@ class Search extends SearchDelegate {
                     popTap: null,
                     file: file,
                     tap: () {
-                      Navigate.pushPage(
-                        context,
-                        Folder(title: 'Storage', path: file.path),
-                      );
+                      Get.to(() => Folder(title: 'Storage', path: file.path));
                     },
                   );
                 }
@@ -127,9 +125,8 @@ class Search extends SearchDelegate {
                     popTap: null,
                     file: file,
                     tap: () {
-                      Navigate.pushPage(
-                        context,
-                        Folder(title: 'Storage', path: file.path),
+                      Get.to(
+                        () => Folder(title: 'Storage', path: file.path),
                       );
                     },
                   );

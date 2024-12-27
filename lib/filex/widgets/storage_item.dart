@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:innerlibs/innerlibs.dart';
 import 'package:kwiq_launcher/filex/screens/folder/folder.dart';
-import 'package:kwiq_launcher/filex/utils/utils.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 
 class StorageItem extends StatelessWidget {
@@ -28,10 +27,7 @@ class StorageItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       onTap: () {
-        Navigate.pushPage(
-          context,
-          Folder(title: title, path: path),
-        );
+        Get.to(() => Folder(title: title, path: path));
       },
       contentPadding: const EdgeInsets.only(right: 20),
       leading: Container(
